@@ -1,0 +1,25 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div class="container-fluid">
+  <div class="row mt-5">
+    <div class="col-8 m-auto">
+      <input-file
+        inputId="images"
+        inputAccept={{inputAccept}}
+        disableUpload="true"
+        inputMaxFiles={{inputMaxFiles}}
+        textBrowse="Buscar"
+        textFileSelected="archivos seleccionados"
+        textNoFile="No hay archivos seleccionados"
+        textRemove="Borrar"
+        [(model)]="inputFileModel"
+        (acceptedFile)="onAccept($event)"
+        (removedFile)="onRemove($event)"
+        (limitReached)="onLimit($event)"
+        (rejectedFile)="onReject($event)">
+      </input-file>
+    </div>
+  </div>
+</div>
+<div class="col-md-12 text-center">
+  <button type="button" class="btn btn-primary btn-lg m-4 px-5" [disabled]="inputFileModel.length == 0" (click)="generar()">Agrupar Pedidos</button>
+</div>

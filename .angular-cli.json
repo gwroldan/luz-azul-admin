@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "project": {
-    "name": "luz-azul-admin-bootstrap"
+    "name": "luz-azul-admin"
   },
   "apps": [
     {
@@ -19,9 +19,16 @@
       "testTsconfig": "tsconfig.spec.json",
       "prefix": "app",
       "styles": [
-        "styles.css"
+        "../node_modules/bootstrap/dist/css/bootstrap.min.css",
+        "../node_modules/sweetalert2/dist/sweetalert2.css",
+        "styles.scss"
       ],
-      "scripts": [],
+      "scripts": [
+        "../node_modules/jquery/dist/jquery.slim.min.js",
+        "../node_modules/popper.js/dist/umd/popper.min.js",
+        "../node_modules/bootstrap/dist/js/bootstrap.min.js",
+        "../node_modules/sweetalert2/dist/sweetalert2.js"
+      ],
       "environmentSource": "environments/environment.ts",
       "environments": {
         "dev": "environments/environment.ts",
@@ -54,7 +61,10 @@
     }
   },
   "defaults": {
-    "styleExt": "css",
+    "serve": {
+      "port": 3000
+    },
+    "styleExt": "scss",
     "component": {}
   }
 }
