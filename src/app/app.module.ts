@@ -6,6 +6,7 @@ import { AgruparPedidosComponent } from './pedidos/agrupar/agrupar-pedidos.compo
 import { DashboardComponent } from './dashboard/dashboard.component';
 
 import { InputFileModule } from 'ngx-input-file';
+import { ChartsModule } from 'ng2-charts';
 import { Routing } from './app.routing';
 
 @NgModule({
@@ -17,6 +18,7 @@ import { Routing } from './app.routing';
   imports: [
     BrowserModule,
     InputFileModule,
+    ChartsModule,
     Routing
   ],
   providers: [],
