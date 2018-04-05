@@ -1,0 +1,34 @@
+<div class="container py-5">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-6 mx-auto">
+          <div class="card rounded-2">
+            <div class="card-header">
+              <h3 class="mb-0">Iniciar Sesion</h3>
+            </div>
+            <div class="card-body">
+              <form #loginForm="ngForm" (ngSubmit)="onSubmit()" class="form" role="form" autocomplete="off" id="formLogin" >
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input type="text" class="form-control form-control-lg rounded-2" id="email" name="email"
+                         #email="ngModel" required [(ngModel)]="registro.email" pattern="[a-zA-Z0-9.-_]{1,}@[a-zA-Z.-]{2,}[.]{1}[a-zA-Z]{2,}" >
+                  <div [hidden]="email.valid || email.pristine"
+                       class="alert alert-danger mt-1" >Ingresa un email valido.</div>
+                </div>
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input type="password" class="form-control form-control-lg rounded-2" id="password" name="password" #password="ngModel" required autocomplete="new-password" [(ngModel)]="registro.password" >
+                  <div [hidden]="password.valid || password.pristine"
+                       class="alert alert-danger mt-1"  >Ingresa tu password tambien!</div>
+                </div>
+                <button type="submit" class="btn btn-success btn-lg btn-block px-5 mt-4" id="btnLogin" (click)="login()" [disabled]="!loginForm.form.valid" >Iniciar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

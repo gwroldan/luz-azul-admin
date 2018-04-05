@@ -2,7 +2,7 @@
 <div class="container-fluid">
   <div class="row mt-4">
     <div class="col-11 m-auto">
-      <ngx-stepper #stepperDemo="stepper" [options]="options">
+      <ngx-stepper #stepperDemo="stepper" [options]="optionsStepper">
         <ngx-step [label]="'Seleccionar Pedidos'">
           <ngx-step-body>
             <div class="container-fluid">
@@ -35,11 +35,17 @@
         </ngx-step>
         <ngx-step [label]="'Agrupar Pedidos'">
           <ngx-step-body>
-            <table>
-              <tr *ngFor="let row of data">
-                <td *ngFor="let col of row">{{ col }}</td>
-              </tr>
-            </table>
+            <div class="container-fluid">
+              <div class="row mt-5">
+                <div class="col-11 m-auto">
+                  <ng2-smart-table
+                    [settings]="settingsTable"
+                    [source]="sourceDataTable"
+                    (editConfirm)="checkUpdateRowDataTable($event)">
+                  </ng2-smart-table>
+                </div>
+              </div>
+            </div>
           </ngx-step-body>
           <ngx-step-actions>
             <div class="col-md-12 text-center">

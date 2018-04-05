@@ -11,6 +11,9 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+    "types": [
+      "file-saver"
+    ],
     "lib": [
       "es2017",
       "dom"

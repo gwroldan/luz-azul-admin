@@ -33,6 +33,21 @@
         </div>
       </li>
     </ul>
+    <ul class="navbar-nav ml-auto" *ngIf="!loggedIn">
+      <li class="nav-item" routerLinkActive="active">
+        <a class="nav-link text-light font-weight-bold" routerLink="login">Iniciar Sesion</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto" *ngIf="loggedIn">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-light font-weight-bold" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {{ email }}
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" (click)="logOut()">Cerrar Sesion</a>
+        </div>
+      </li>
+    </ul>
   </div>
 </nav>
 <router-outlet></router-outlet>
