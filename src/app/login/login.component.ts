@@ -13,7 +13,11 @@ export class LoginComponent {
 
   constructor(private autorizacionService: AutorizacionService) { }
 
-  public login() { this.autorizacionService.login(this.registro.email, this.registro.password); }
+  public login() {
+    this.autorizacionService.login(this.registro.email, this.registro.password);
+  }
 
-  public onSubmit() { this.submitted = true; }
+  public onSubmit() {
+    this.submitted = true;
+  }
 }

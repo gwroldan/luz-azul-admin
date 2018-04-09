@@ -3,11 +3,39 @@
   <div class="row mt-4">
     <div class="col-11 m-auto">
       <ngx-stepper #stepperDemo="stepper" [options]="optionsStepper">
+        <ngx-step [label]="'Seleccionar Proveedor'">
+          <ngx-step-body>
+            <div class="container-fluid">
+              <div class="row mt-5">
+                <div class="col-8 m-auto">
+                  <div class="card">
+                    <div class="card-header">
+                      <h3 class="card-title text-center">Seleccione el proveedor de los pedidos a agrupar</h3>
+                    </div>
+                    <div class="card-body">
+                      <div class="form-check m-2" *ngFor="let proveedor of proveedores; let i = index">
+                        <input class="form-check-input" type="radio" name="exampleRadios"
+                               id="{{proveedor}}" value="{{proveedor}}" (change)="SelectProveedor(proveedor)" [checked]="i ==0 ? true: null" >
+                        <label class="form-check-label" for="{{proveedor}}">{{proveedor}}</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ngx-step-body>
+          <ngx-step-actions>
+            <div class="col-md-12 text-center">
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepFile()">Siguiente</button>
+            </div>
+          </ngx-step-actions>
+        </ngx-step>
         <ngx-step [label]="'Seleccionar Pedidos'">
           <ngx-step-body>
             <div class="container-fluid">
               <div class="row mt-5">
                 <div class="col-8 m-auto">
+                  <h3 class="text-center mb-5">Proveedor: {{proveedorSel}}</h3>
                   <input-file
                     inputId="images"
                     inputAccept={{inputAccept}}
@@ -29,7 +57,8 @@
           </ngx-step-body>
           <ngx-step-actions>
             <div class="col-md-12 text-center">
-              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStep()">Siguiente</button>
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStep()">Atras</button>
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepExport()">Siguiente</button>
             </div>
           </ngx-step-actions>
         </ngx-step>

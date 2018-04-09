@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material';
-import { Router } from '@angular/router';
 
 import swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
@@ -9,6 +8,8 @@ import * as XLSXStyle from 'xlsx-style';
 import { saveAs } from 'file-saver';
 import { NgxStepperComponent, StepperOptions } from 'ngx-stepper';
 import { LocalDataSource } from 'ng2-smart-table';
+
+import { DataService } from '../../services/data.service';
 
 type AOA = any[][];
 
@@ -48,6 +49,7 @@ export class AgruparPedidosComponent implements OnInit {
   //     [],
   //   ];
   private internalFileModel: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
+  private internalFileErrors: Array<any> = new Array<any>();
   private fileName = 'PedidoAgrupado.xlsx';
 
   // Properties Stepper
@@ -63,7 +65,17 @@ export class AgruparPedidosComponent implements OnInit {
     labelOf: 'de'
   };
 
-  constructor(private _iconRegistry: MatIconRegistry, private _sanitizer: DomSanitizer, private router: Router) { }
+  public cantFilesLoad: number;
+  public proveedores: string[];
+  public proveedorSel: string;
+
+  constructor(private _iconRegistry: MatIconRegistry,
+              private _sanitizer: DomSanitizer,
+              private dataService: DataService) {
+    this.cantFilesLoad = this.dataService.getCantFilesLoad();
+    this.proveedores = this.dataService.getProveedores();
+    this.proveedorSel = this.proveedores[0];
+  }
 
   public ngOnInit(): void {
     this._iconRegistry
@@ -90,7 +102,7 @@ export class AgruparPedidosComponent implements OnInit {
     });
 
     detAgrupado.forEach((det) => {
-      det[2] = parseFloat(det[2]).toFixed(2);
+      det[2] = parseFloat(det[2]).toFixed(0);
       det[5] = parseFloat(det[5]).toFixed(4);
     });
 
@@ -148,6 +160,17 @@ export class AgruparPedidosComponent implements OnInit {
         return detalle;
       })
       ;
+  }
+
+  private confirmNextStep(): void {
+    this.readMultipleFiles(this.internalFileModel)
+      .then((detalle: AOA) => {
+        this.setSourceDataTable(this.agruparDetalle(detalle));
+        this.steppers.next();
+      })
+      .catch((err) => {
+        console.error('Ocurrio un error inesperado:', err);
+      });
   }
 
   private setCabeceraWorkSheet(data: any[]): any[] {
@@ -294,12 +317,37 @@ export class AgruparPedidosComponent implements OnInit {
   // metodos para inputFile
   public onAccept(file: any): void {
     console.log('accept');
-    this.internalFileModel.push(file);
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const bstr: string = e.target.result;
+      const wb: XLSX.WorkBook = XLSX.read(bstr, {type: 'binary'});
+
+      /* grab first sheet */
+      const wsname: string = wb.SheetNames[0];
+      const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+
+      /* save data */
+      const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
+      const proveedorCell: string = tmp[3][1];
+
+      if (proveedorCell.toUpperCase() !== this.proveedorSel.toUpperCase()) {
+        this.internalFileErrors.push(file);
+      } else {
+        this.internalFileModel.push(file);
+      }
+    };
+
+    reader.readAsBinaryString(file.file);
   }
 
   public onRemove(file: any): void {
     console.log('remove');
-    this.internalFileModel.splice(this.internalFileModel.indexOf(file), 1);
+    const indexFileModel = this.internalFileModel.indexOf(file);
+    const indexFileError = this.internalFileErrors.indexOf(file);
+
+    if (indexFileModel !== -1) { this.internalFileModel.splice(indexFileModel, 1); }
+    if (indexFileError !== -1) { this.internalFileErrors.splice(indexFileError, 1); }
   }
 
   public onLimit(): void {
@@ -325,17 +373,49 @@ export class AgruparPedidosComponent implements OnInit {
     this.steppers.back();
   }
 
-  public nextStep(): void {
+  public nextStepFile(): void {
+    this.steppers.next();
+  }
+
+  public nextStepExport(): void {
+    if (this.internalFileErrors.length > 0) {
+      let nameFiles = '<ul>';
+      for (let i = 0; i < this.internalFileErrors.length; i++) {
+        nameFiles = nameFiles + `<li><b>${this.internalFileErrors[i].file.name}</b></li>`;
+      }
+      nameFiles = nameFiles + '</ul>';
+
+      console.log(nameFiles);
+      swal({
+        type: 'error',
+        title: 'Archivos invalidos',
+        html: `<p>Los siguientes archivos no pertenecen al proveedor seleccionado:<p>
+              ${nameFiles}
+              Debe quitarlos para poder seguir adelante.`,
+      })
+
+      return;
+    }
+
     if (this.internalFileModel.length > 1) {
       this.steppers.clearError();
-      this.readMultipleFiles(this.internalFileModel)
-        .then((detalle: AOA) => {
-          this.setSourceDataTable(this.agruparDetalle(detalle));
-          this.steppers.next();
-        })
-        .catch((err) => {
-          console.error('Ocurrio un error inesperado:', err);
+
+      if (this.internalFileModel.length !== this.cantFilesLoad) {
+        swal({
+          title: 'Esta Seguro?',
+          text: `Deberian ser ${this.cantFilesLoad} pedidos para este Deposito. Desea seguir adelante de todas formas?`,
+          type: 'question',
+          showCancelButton: true,
+          cancelButtonText: 'No',
+          confirmButtonText: 'Continuar'
+        }).then((result) => {
+          if (result.value) {
+            this.confirmNextStep();
+          }
         });
+      } else {
+        this.confirmNextStep();
+      }
     } else {
       this.steppers.error('Debe seleccionar al menos 2 pedidos');
     }
@@ -362,11 +442,11 @@ export class AgruparPedidosComponent implements OnInit {
   }
 
   public checkUpdateRowDataTable(event: any) {
-    let valid: boolean = (event.newData.cantPedida && event.newData.cantPedida !== '' && !isNaN(event.newData.cantPedida));
-    valid = (valid && event.newData.kgPedidos && event.newData.kgPedidos !== '' && !isNaN(event.newData.kgPedidos));
+    const cantPedida = event.newData.cantPedida;
+    const valid: boolean = (cantPedida && cantPedida !== '' && !isNaN(cantPedida) && (cantPedida % 1 === 0) && (cantPedida > 0));
 
     if (valid) {
-      event.newData.cantPedida = parseFloat(event.newData.cantPedida).toFixed(2);
+      event.newData.cantPedida = parseFloat(cantPedida).toFixed(0);
       event.newData.kgPedidos = ((event.data.kgPedidos / event.data.cantPedida) * event.newData.cantPedida).toFixed(4);
       this.sourceDataTable.update(event.data, event.newData)
         .then(() => {
@@ -376,11 +456,16 @@ export class AgruparPedidosComponent implements OnInit {
     } else {
       swal(
         'Error',
-        'Debe ingresar un valor númerico.',
+        'Debe ingresar un número entero mayor a 0.',
         'error'
       )
       event.confirm.reject();
     }
+  }
+
+  // metodos SelProveedor
+  public SelectProveedor(proveedor: any) {
+    this.proveedorSel = proveedor;
   }
 
 }

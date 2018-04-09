@@ -18,6 +18,7 @@ import { Routing } from './app.routing';
 
 import { AutorizacionService } from './services/autorizacion.service';
 import { MyGuardService } from './services/my-guard.service';
+import { DataService } from './services/data.service';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { MyGuardService } from './services/my-guard.service';
   ],
   providers: [
     AutorizacionService,
-    MyGuardService
+    MyGuardService,
+    DataService
   ],
   bootstrap: [AppComponent]
 })

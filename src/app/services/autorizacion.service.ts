@@ -7,7 +7,8 @@ import swal from 'sweetalert2';
 @Injectable()
 export class AutorizacionService {
 
-  constructor(private angularFireAuth: AngularFireAuth, private router: Router) {
+  constructor(private angularFireAuth: AngularFireAuth,
+              private router: Router) {
     this.isLogged();
   }
 
