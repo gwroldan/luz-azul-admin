@@ -11,8 +11,8 @@ export class DataService {
       cantFilesLoad: 10
     },
     proveedores: ['Cagnoli', 'Festa', 'Fox', 'Luz Azul', 'Morando',
-      'Otros de Terceros', 'Pannet', 'Papelera y Grafica', 'Pieres',
-      'Tapalque', 'Tapamania']
+      'Otros de Terceros', 'Paladini', 'Pannet', 'Papelera y Grafica',
+      'Pieres', 'Tapalque', 'Tapamania']
   };
 
   public setCurrentMail(email?: string) {

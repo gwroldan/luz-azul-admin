@@ -43,11 +43,6 @@ export class AgruparPedidosComponent implements OnInit {
   public inputFileModel: Array<any> = new Array<any>();
   public inputMaxFiles: number = 40;
   public inputAccept: string = '.xls,.xlsx';
-  // private cabecera: AOA = [
-  //     ['Empresa:', 'Ensemble SRL'],
-  //     ['Fecha:', new Date()],
-  //     [],
-  //   ];
   private internalFileModel: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
   private internalFileErrors: Array<any> = new Array<any>();
   private fileName = 'PedidoAgrupado.xlsx';
@@ -174,17 +169,40 @@ export class AgruparPedidosComponent implements OnInit {
   }
 
   private setCabeceraWorkSheet(data: any[]): any[] {
-    const cabecera = {
-      codProducto: 'Cod. Producto',
-      descripcion: 'Descripcion',
-      cantPedida:  'Cant. Pedida',
-      cantReal:    'Cant. Real',
-      kgReales:    'Kg. Reales',
-      kgPedidos:   'Kg. Pedidos',
-      lote:        'Lote'
-    };
 
-    data.unshift(cabecera);
+    const cabecera = [
+      {
+        codProducto: 'Empresa:', descripcion: 'Ensemble SRL',
+        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+      },
+      {
+        codProducto: 'Deposito:', descripcion: 'Agrupado',
+        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+      },
+      {
+        codProducto: 'Fecha:', descripcion: new Date(),
+        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+      },
+      {
+        codProducto: 'Clasificacion:', descripcion: this.proveedorSel,
+        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+      },
+      {
+        codProducto: '', descripcion: '',
+        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+      },
+      {
+        codProducto: 'Cod. Producto',
+        descripcion: 'Descripcion',
+        cantPedida: 'Cant. Pedida',
+        cantReal: 'Cant. Real',
+        kgReales: 'Kg. Reales',
+        kgPedidos: 'Kg. Pedidos',
+        lote: 'Lote'
+      }
+    ];
+
+    data = [ ...cabecera, ...data];
     return data;
   }
 
@@ -196,6 +214,7 @@ export class AgruparPedidosComponent implements OnInit {
     const lastChar = lastCell.charAt(0);
     const firstNumber: number = parseInt(firstCell.substr(1), 10);
     const lastNumber: number = parseInt(lastCell.substr(1), 10);
+    const firstNumberCabDet = 6; // Determina donde comienza la Cabecera del Detalle
 
     let abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     abc = abc.substr(abc.indexOf(firstChar));
@@ -221,33 +240,40 @@ export class AgruparPedidosComponent implements OnInit {
         // Busco el valor con mas caracteres
         maxChars = (ws[`${element}${i}`].v.length > maxChars ? ws[`${element}${i}`].v.length : maxChars);
 
-        // por defecto para todas las celdas
-        ws[`${element}${i}`].t = 's'
-        ws[`${element}${i}`].s = {
-          font: { sz: 12 },
-          border: {
-            top: { style: 'thin', color: { auto: 1} },
-            bottom: { style: 'thin', color: { auto: 1} },
-            left: { style: 'thin', color: { auto: 1} },
-            right: { style: 'thin', color: { auto: 1} },
-          }
-        };
-
-        // formato cabecera
-        if (i === firstNumber ) {
-          ws[`${element}${i}`].s['fill'] = {
-              bgColor: {indexed: 64},
-              fgColor: {rgb: '00000000'},
-              patternType: 'solid'
+        // Datos antes de Cabecera del Detalle
+        if (i < firstNumberCabDet) {
+          ws[`${element}${i}`].s = {
+            font: {sz: 14, bold: true}
+          };
+        } else {
+            // por defecto para todas las celdas
+            ws[`${element}${i}`].t = 's';
+            ws[`${element}${i}`].s = {
+              font: {sz: 12},
+              border: {
+                top: {style: 'thin', color: {auto: 1}},
+                bottom: {style: 'thin', color: {auto: 1}},
+                left: {style: 'thin', color: {auto: 1}},
+                right: {style: 'thin', color: {auto: 1}},
+              }
             };
-          ws[`${element}${i}`].s['font']['color'] = {rgb: 'FFFFFF'};
-          ws[`${element}${i}`].s['font']['bold'] = true;
-          ws[`${element}${i}`].s['alignment'] = { horizontal: 'center' };
-        }
 
-        if (!isNaN(ws[`${element}${i}`].v) && element !== firstChar) {
-          ws[`${element}${i}`].t = 'n';
-          ws[`${element}${i}`].s['numFmt'] = '0.0000';
+            // formato cabecera
+            if (i === firstNumberCabDet) {
+              ws[`${element}${i}`].s['fill'] = {
+                bgColor: {indexed: 64},
+                fgColor: {rgb: '00000000'},
+                patternType: 'solid'
+              };
+              ws[`${element}${i}`].s['font']['color'] = {rgb: 'FFFFFF'};
+              ws[`${element}${i}`].s['font']['bold'] = true;
+              ws[`${element}${i}`].s['alignment'] = {horizontal: 'center'};
+            }
+
+            if (!isNaN(ws[`${element}${i}`].v) && element !== firstChar) {
+              ws[`${element}${i}`].t = 'n';
+              ws[`${element}${i}`].s['numFmt'] = '0.0000';
+            }
         }
       }
 
@@ -385,7 +411,6 @@ export class AgruparPedidosComponent implements OnInit {
       }
       nameFiles = nameFiles + '</ul>';
 
-      console.log(nameFiles);
       swal({
         type: 'error',
         title: 'Archivos invalidos',
@@ -466,6 +491,13 @@ export class AgruparPedidosComponent implements OnInit {
   // metodos SelProveedor
   public SelectProveedor(proveedor: any) {
     this.proveedorSel = proveedor;
+
+    const optFormatDate = {year: 'numeric', month: '2-digit', day: '2-digit'};
+    let strDateFile = new Date().toLocaleDateString('es-AR', optFormatDate);
+    strDateFile = strDateFile.replace('/', '.');
+    strDateFile = strDateFile.replace('/', '.');
+
+    this.fileName = `Agrupado - ${this.proveedorSel} - ${strDateFile}.xlsx`;
   }
 
 }
