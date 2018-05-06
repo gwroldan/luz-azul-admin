@@ -39,13 +39,20 @@ export class AgruparPedidosComponent implements OnInit {
   };
   public sourceDataTable: LocalDataSource;
 
-  // Propperties InputFile
+  // Properties InputFile Pedidos
   public inputFileModel: Array<any> = new Array<any>();
   public inputMaxFiles: number = 40;
   public inputAccept: string = '.xls,.xlsx';
   private internalFileModel: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
   private internalFileErrors: Array<any> = new Array<any>();
   private fileName = 'PedidoAgrupado.xlsx';
+
+  // Properties InputFile Pedidos
+  public inputFileModelStock: Array<any> = new Array<any>();
+  public inputMaxFilesStock: number = 1;
+  public inputAcceptStock: string = '.xls,.xlsx';
+  private internalFileModelStock: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
+  private internalFileErrorsStock: Array<any> = new Array<any>();
 
   // Properties Stepper
   @ViewChild('stepperDemo')
@@ -60,16 +67,25 @@ export class AgruparPedidosComponent implements OnInit {
     labelOf: 'de'
   };
 
+  public deposito: string;
   public cantFilesLoad: number;
-  public proveedores: string[];
-  public proveedorSel: string;
+  public proveedores: any[];
+  public proveedorSel: any;
 
   constructor(private _iconRegistry: MatIconRegistry,
               private _sanitizer: DomSanitizer,
               private dataService: DataService) {
-    this.cantFilesLoad = this.dataService.getCantFilesLoad();
-    this.proveedores = this.dataService.getProveedores();
-    this.proveedorSel = this.proveedores[0];
+    this.dataService.getDatosUsuario()
+      .then( (parametros) => {
+        this.cantFilesLoad = parametros[0];
+        this.deposito = parametros[1];
+      });
+
+    this.dataService.getProveedores()
+      .then((proveedores: any) => {
+        this.proveedores = proveedores;
+        this.proveedorSel = this.proveedores[0];
+      });
   }
 
   public ngOnInit(): void {
@@ -97,6 +113,8 @@ export class AgruparPedidosComponent implements OnInit {
     });
 
     detAgrupado.forEach((det) => {
+      // det[2] = (parseFloat(det[2]) * this.proveedorSel.multiplicador).toFixed(0);
+      // det[5] = (parseFloat(det[5]) * this.proveedorSel.multiplicador).toFixed(4);
       det[2] = parseFloat(det[2]).toFixed(0);
       det[5] = parseFloat(det[5]).toFixed(4);
     });
@@ -168,6 +186,22 @@ export class AgruparPedidosComponent implements OnInit {
       });
   }
 
+  private sumKilogramos(detalle): any[] {
+    let totalKg = 0;
+    detalle.forEach((det) => totalKg = totalKg + parseFloat(det.kgPedidos));
+
+    detalle.push({
+      codProducto: undefined,
+      descripcion: undefined,
+      cantPedida:  undefined,
+      cantReal:    undefined,
+      kgReales:    undefined,
+      kgPedidos:   totalKg,
+      lote:        undefined
+    });
+    return detalle;
+  }
+
   private setCabeceraWorkSheet(data: any[]): any[] {
 
     const cabecera = [
@@ -184,7 +218,7 @@ export class AgruparPedidosComponent implements OnInit {
         cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
       },
       {
-        codProducto: 'Clasificacion:', descripcion: this.proveedorSel,
+        codProducto: 'Clasificacion:', descripcion: this.proveedorSel.nombre,
         cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
       },
       {
@@ -248,17 +282,21 @@ export class AgruparPedidosComponent implements OnInit {
         } else {
             // por defecto para todas las celdas
             ws[`${element}${i}`].t = 's';
-            ws[`${element}${i}`].s = {
-              font: {sz: 12},
-              border: {
+            ws[`${element}${i}`].s = { font: {sz: 12} };
+
+            // formato para el ultimo registro
+            if (i === lastNumber) {
+              ws[`${element}${i}`].s.font.bold = true;
+            } else {
+              ws[`${element}${i}`].s.border = {
                 top: {style: 'thin', color: {auto: 1}},
                 bottom: {style: 'thin', color: {auto: 1}},
                 left: {style: 'thin', color: {auto: 1}},
-                right: {style: 'thin', color: {auto: 1}},
-              }
-            };
+                right: {style: 'thin', color: {auto: 1}}
+              };
+            }
 
-            // formato cabecera
+            // formato cabecera del detalle
             if (i === firstNumberCabDet) {
               ws[`${element}${i}`].s['fill'] = {
                 bgColor: {indexed: 64},
@@ -301,7 +339,10 @@ export class AgruparPedidosComponent implements OnInit {
 
               setTimeout(() => {
                 /* generate worksheet */
-                const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.setCabeceraWorkSheet(data), { skipHeader: true });
+                data = this.sumKilogramos(data);
+                data = this.setCabeceraWorkSheet(data);
+
+                const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data, { skipHeader: true });
                 this.formatWorkSheet(ws);
 
                 /* generate workbook and add the worksheet */
@@ -340,9 +381,9 @@ export class AgruparPedidosComponent implements OnInit {
       });
   }
 
-  // metodos para inputFile
-  public onAccept(file: any): void {
-    console.log('accept');
+  // eventos para inputFile pedidos
+  public onAcceptPedido(file: any): void {
+    console.log('accept pedido');
 
     const reader = new FileReader();
     reader.onload = (e: any) => {
@@ -357,7 +398,7 @@ export class AgruparPedidosComponent implements OnInit {
       const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
       const proveedorCell: string = tmp[3][1];
 
-      if (proveedorCell.toUpperCase() !== this.proveedorSel.toUpperCase()) {
+      if (proveedorCell.toUpperCase() !== this.proveedorSel.nombre.toUpperCase()) {
         this.internalFileErrors.push(file);
       } else {
         this.internalFileModel.push(file);
@@ -367,7 +408,7 @@ export class AgruparPedidosComponent implements OnInit {
     reader.readAsBinaryString(file.file);
   }
 
-  public onRemove(file: any): void {
+  public onRemovePedido(file: any): void {
     console.log('remove');
     const indexFileModel = this.internalFileModel.indexOf(file);
     const indexFileError = this.internalFileErrors.indexOf(file);
@@ -376,7 +417,7 @@ export class AgruparPedidosComponent implements OnInit {
     if (indexFileError !== -1) { this.internalFileErrors.splice(indexFileError, 1); }
   }
 
-  public onLimit(): void {
+  public onLimitPedido(): void {
     console.log('limit');
     swal({
       type: 'info',
@@ -385,12 +426,61 @@ export class AgruparPedidosComponent implements OnInit {
     });
   }
 
-  public onReject(): void {
+  public onRejectPedido(): void {
     console.log('reject');
     swal({
       type: 'warning',
       title: 'Archivo Invalido',
       html: `Solo se pueden cargar archivos con extension <b>${this.inputAccept}</b>!`
+    });
+  }
+
+  // eventos para inputFile pedidos
+  public onAcceptStock(file: any): void {
+    console.log('accept stock');
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const bstr: string = e.target.result;
+      const wb: XLSX.WorkBook = XLSX.read(bstr, {type: 'binary'});
+
+      /* grab first sheet */
+      const wsname: string = wb.SheetNames[0];
+      const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+
+      /* save data */
+      const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
+      const depositoCell: string = tmp[7][3];
+
+      if (depositoCell === undefined || depositoCell.toUpperCase() !== this.deposito.toUpperCase()) {
+        this.internalFileErrorsStock.push(file);
+      } else {
+        this.internalFileModelStock.push(file);
+      }
+    };
+
+    reader.readAsBinaryString(file.file);
+  }
+
+  public onRemoveStock(file: any): void {
+    console.log('remove');
+    const indexFileModel = this.internalFileModelStock.indexOf(file);
+    const indexFileError = this.internalFileErrorsStock.indexOf(file);
+
+    if (indexFileModel !== -1) { this.internalFileModelStock.splice(indexFileModel, 1); }
+    if (indexFileError !== -1) { this.internalFileErrorsStock.splice(indexFileError, 1); }
+  }
+
+  public onLimitStock(): void {
+    console.log('limit');
+  }
+
+  public onRejectStock(): void {
+    console.log('reject');
+    swal({
+      type: 'warning',
+      title: 'Archivo Invalido',
+      html: `Solo se pueden cargar archivos con extension <b>${this.inputAcceptStock}</b>!`
     });
   }
 
@@ -400,10 +490,14 @@ export class AgruparPedidosComponent implements OnInit {
   }
 
   public nextStepFile(): void {
-    this.steppers.next();
+    if (this.proveedorSel) {
+      this.steppers.next();
+    } else {
+      this.steppers.error('Debe seleccionar un proveedor');
+    }
   }
 
-  public nextStepExport(): void {
+  public nextStepStock(): void {
     if (this.internalFileErrors.length > 0) {
       let nameFiles = '<ul>';
       for (let i = 0; i < this.internalFileErrors.length; i++) {
@@ -435,14 +529,30 @@ export class AgruparPedidosComponent implements OnInit {
           confirmButtonText: 'Continuar'
         }).then((result) => {
           if (result.value) {
-            this.confirmNextStep();
+            // this.confirmNextStep();
+            this.steppers.next();
           }
         });
       } else {
-        this.confirmNextStep();
+        // this.confirmNextStep();
+        this.steppers.next();
       }
     } else {
       this.steppers.error('Debe seleccionar al menos 2 pedidos');
+    }
+  }
+
+  public nextStepExport(): void {
+    if (this.internalFileErrorsStock.length > 0) {
+      this.steppers.error(`El archivo no pertenece a ${this.deposito}`);
+      return;
+    } else {
+      if (this.internalFileModelStock.length === 0) {
+        this.steppers.error('Debe seleccionar un archivo');
+        return;
+      } else {
+        this.confirmNextStep();
+      }
     }
   }
 
@@ -497,7 +607,7 @@ export class AgruparPedidosComponent implements OnInit {
     strDateFile = strDateFile.replace('/', '.');
     strDateFile = strDateFile.replace('/', '.');
 
-    this.fileName = `Agrupado - ${this.proveedorSel} - ${strDateFile}.xlsx`;
+    this.fileName = `Agrupado - ${this.proveedorSel.nombre} - ${strDateFile}.xlsx`;
   }
 
 }

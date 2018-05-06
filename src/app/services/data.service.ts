@@ -1,34 +1,56 @@
 import { Injectable } from '@angular/core';
 
+import * as firebase from 'firebase';
+import 'firebase/firestore';
+
 @Injectable()
 export class DataService {
+  private db: any;
   private currentMail: string;
-  private configuracion = {
-    barracas: {
-      cantFilesLoad: 9
-    },
-    olavarria: {
-      cantFilesLoad: 10
-    },
-    proveedores: ['Cagnoli', 'Festa', 'Fox', 'Luz Azul', 'Morando',
-      'Otros de Terceros', 'Paladini', 'Pannet', 'Papelera y Grafica',
-      'Pieres', 'Tapalque', 'Tapamania']
-  };
+
+  constructor() {
+    this.db = firebase.firestore();
+    this.db.settings({timestampsInSnapshots: true});
+    this.db.enablePersistence().catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.log('Solo se puede utilizar la cache en la primer pestaña...');
+      } else if (err.code === 'unimplemented') {
+        console.log('El navegador no soporta esta caracteristica...');
+      }
+    });
+  }
 
   public setCurrentMail(email?: string) {
     this.currentMail = email;
   }
 
-  public getCantFilesLoad() {
-    switch (this.currentMail) {
-      case 'depositoolavarria@luz-azul.com.ar': return this.configuracion.olavarria.cantFilesLoad;
-      case 'expedicionbarracas@luz-azul.com.ar': return this.configuracion.barracas.cantFilesLoad;
-      case 'pedidosbarracas@luz-azul.com.ar': return this.configuracion.barracas.cantFilesLoad;
-      case 'gustavowroldan@gmail.com': return this.configuracion.olavarria.cantFilesLoad;
-    }
+  public getDatosUsuario() {
+    return this.db.collection('usuarios').get()
+      .then((docs) => {
+        const parametros = [];
+        docs.forEach((doc: any) => {
+          if (doc.id === this.currentMail) {
+            parametros.push(doc.data().cantFilesLoad);
+            parametros.push(doc.data().deposito);
+          }
+        });
+
+        return parametros;
+      });
   }
 
-  public getProveedores() {
-    return this.configuracion.proveedores;
+  public getProveedores(): Promise<any> {
+    return this.db.collection('proveedores').orderBy('nombre').get()
+      .then((docs) => {
+        const proveedores = [];
+        docs.forEach((doc: any) => {
+          proveedores.push({
+            nombre: doc.data().nombre,
+            multiplicador: doc.data().multiplicadorPed
+          });
+        });
+
+        return proveedores;
+      });
   }
 }
