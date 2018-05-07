@@ -48,11 +48,11 @@ export class AgruparPedidosComponent implements OnInit {
   private fileName = 'PedidoAgrupado.xlsx';
 
   // Properties InputFile Pedidos
-  public inputFileModelStock: Array<any> = new Array<any>();
-  public inputMaxFilesStock: number = 1;
-  public inputAcceptStock: string = '.xls,.xlsx';
-  private internalFileModelStock: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
-  private internalFileErrorsStock: Array<any> = new Array<any>();
+  // public inputFileModelStock: Array<any> = new Array<any>();
+  // public inputMaxFilesStock: number = 1;
+  // public inputAcceptStock: string = '.xls,.xlsx';
+  // private internalFileModelStock: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
+  // private internalFileErrorsStock: Array<any> = new Array<any>();
 
   // Properties Stepper
   @ViewChild('stepperDemo')
@@ -76,9 +76,9 @@ export class AgruparPedidosComponent implements OnInit {
               private _sanitizer: DomSanitizer,
               private dataService: DataService) {
     this.dataService.getDatosUsuario()
-      .then( (parametros) => {
-        this.cantFilesLoad = parametros[0];
-        this.deposito = parametros[1];
+      .then( (usuario) => {
+        this.cantFilesLoad = usuario.cantFilesLoad;
+        this.deposito = usuario.deposito;
       });
 
     this.dataService.getProveedores()
@@ -435,54 +435,55 @@ export class AgruparPedidosComponent implements OnInit {
     });
   }
 
-  // eventos para inputFile pedidos
-  public onAcceptStock(file: any): void {
-    console.log('accept stock');
+  // eventos para inputFile stock
 
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const bstr: string = e.target.result;
-      const wb: XLSX.WorkBook = XLSX.read(bstr, {type: 'binary'});
+  // public onAcceptStock(file: any): void {
+  //   console.log('accept stock');
+  //
+  //   const reader = new FileReader();
+  //   reader.onload = (e: any) => {
+  //     const bstr: string = e.target.result;
+  //     const wb: XLSX.WorkBook = XLSX.read(bstr, {type: 'binary'});
+  //
+  //     /* grab first sheet */
+  //     const wsname: string = wb.SheetNames[0];
+  //     const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+  //
+  //     /* save data */
+  //     const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
+  //     const depositoCell: string = tmp[7][3];
+  //
+  //     if (depositoCell === undefined || depositoCell.toUpperCase() !== this.deposito.toUpperCase()) {
+  //       this.internalFileErrorsStock.push(file);
+  //     } else {
+  //       this.internalFileModelStock.push(file);
+  //     }
+  //   };
+  //
+  //   reader.readAsBinaryString(file.file);
+  // }
 
-      /* grab first sheet */
-      const wsname: string = wb.SheetNames[0];
-      const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+  // public onRemoveStock(file: any): void {
+  //   console.log('remove');
+  //   const indexFileModel = this.internalFileModelStock.indexOf(file);
+  //   const indexFileError = this.internalFileErrorsStock.indexOf(file);
+  //
+  //   if (indexFileModel !== -1) { this.internalFileModelStock.splice(indexFileModel, 1); }
+  //   if (indexFileError !== -1) { this.internalFileErrorsStock.splice(indexFileError, 1); }
+  // }
 
-      /* save data */
-      const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
-      const depositoCell: string = tmp[7][3];
+  // public onLimitStock(): void {
+  //   console.log('limit');
+  // }
 
-      if (depositoCell === undefined || depositoCell.toUpperCase() !== this.deposito.toUpperCase()) {
-        this.internalFileErrorsStock.push(file);
-      } else {
-        this.internalFileModelStock.push(file);
-      }
-    };
-
-    reader.readAsBinaryString(file.file);
-  }
-
-  public onRemoveStock(file: any): void {
-    console.log('remove');
-    const indexFileModel = this.internalFileModelStock.indexOf(file);
-    const indexFileError = this.internalFileErrorsStock.indexOf(file);
-
-    if (indexFileModel !== -1) { this.internalFileModelStock.splice(indexFileModel, 1); }
-    if (indexFileError !== -1) { this.internalFileErrorsStock.splice(indexFileError, 1); }
-  }
-
-  public onLimitStock(): void {
-    console.log('limit');
-  }
-
-  public onRejectStock(): void {
-    console.log('reject');
-    swal({
-      type: 'warning',
-      title: 'Archivo Invalido',
-      html: `Solo se pueden cargar archivos con extension <b>${this.inputAcceptStock}</b>!`
-    });
-  }
+  // public onRejectStock(): void {
+  //   console.log('reject');
+  //   swal({
+  //     type: 'warning',
+  //     title: 'Archivo Invalido',
+  //     html: `Solo se pueden cargar archivos con extension <b>${this.inputAcceptStock}</b>!`
+  //   });
+  // }
 
   // metodos Stepper
   public previousStep(): void {
@@ -497,7 +498,7 @@ export class AgruparPedidosComponent implements OnInit {
     }
   }
 
-  public nextStepStock(): void {
+  public nextStepExport(): void {
     if (this.internalFileErrors.length > 0) {
       let nameFiles = '<ul>';
       for (let i = 0; i < this.internalFileErrors.length; i++) {
@@ -529,32 +530,30 @@ export class AgruparPedidosComponent implements OnInit {
           confirmButtonText: 'Continuar'
         }).then((result) => {
           if (result.value) {
-            // this.confirmNextStep();
-            this.steppers.next();
+            this.confirmNextStep();
           }
         });
       } else {
-        // this.confirmNextStep();
-        this.steppers.next();
+        this.confirmNextStep();
       }
     } else {
       this.steppers.error('Debe seleccionar al menos 2 pedidos');
     }
   }
 
-  public nextStepExport(): void {
-    if (this.internalFileErrorsStock.length > 0) {
-      this.steppers.error(`El archivo no pertenece a ${this.deposito}`);
-      return;
-    } else {
-      if (this.internalFileModelStock.length === 0) {
-        this.steppers.error('Debe seleccionar un archivo');
-        return;
-      } else {
-        this.confirmNextStep();
-      }
-    }
-  }
+  // public nextStepExport(): void {
+  //   if (this.internalFileErrorsStock.length > 0) {
+  //     this.steppers.error(`El archivo no pertenece a ${this.deposito}`);
+  //     return;
+  //   } else {
+  //     if (this.internalFileModelStock.length === 0) {
+  //       this.steppers.error('Debe seleccionar un archivo');
+  //       return;
+  //     } else {
+  //       this.confirmNextStep();
+  //     }
+  //   }
+  // }
 
   // metodos DataTable
   private setSourceDataTable(detalle: AOA) {

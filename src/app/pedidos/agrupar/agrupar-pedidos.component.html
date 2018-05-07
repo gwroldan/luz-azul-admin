@@ -58,38 +58,6 @@
           <ngx-step-actions>
             <div class="col-md-12 text-center">
               <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStep()">Atras</button>
-              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepStock()">Siguiente</button>
-            </div>
-          </ngx-step-actions>
-        </ngx-step>
-        <ngx-step [label]="'Cargar Stock'">
-          <ngx-step-body>
-            <div class="container-fluid">
-              <div class="row mt-5">
-                <div class="col-8 m-auto">
-                  <h3 class="text-center mb-5">Deposito: {{deposito}}</h3>
-                  <input-file
-                    inputId="stock"
-                    inputAccept={{inputAcceptStock}}
-                    disableUpload="true"
-                    inputMaxFiles={{inputMaxFilesStock}}
-                    textBrowse="Buscar"
-                    textFileSelected="archivos seleccionados"
-                    textNoFile="No hay archivos seleccionados"
-                    textRemove="Borrar"
-                    [(model)]="inputFileModelStock"
-                    (acceptedFile)="onAcceptStock($event)"
-                    (removedFile)="onRemoveStock($event)"
-                    (limitReached)="onLimitStock($event)"
-                    (rejectedFile)="onRejectStock($event)">
-                  </input-file>
-                </div>
-              </div>
-            </div>
-          </ngx-step-body>
-          <ngx-step-actions>
-            <div class="col-md-12 text-center">
-              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStep()">Atras</button>
               <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepExport()">Siguiente</button>
             </div>
           </ngx-step-actions>

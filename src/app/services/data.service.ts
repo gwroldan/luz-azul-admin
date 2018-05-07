@@ -8,6 +8,17 @@ export class DataService {
   private db: any;
   private currentMail: string;
 
+  private usuario: {
+    email: string,
+    deposito: string,
+    cantFilesLoad: number
+  };
+
+  private proveedores: {
+    nombre: string,
+    multiplicador: number
+  }[] = [];
+
   constructor() {
     this.db = firebase.firestore();
     this.db.settings({timestampsInSnapshots: true});
@@ -25,32 +36,45 @@ export class DataService {
   }
 
   public getDatosUsuario() {
-    return this.db.collection('usuarios').get()
-      .then((docs) => {
-        const parametros = [];
-        docs.forEach((doc: any) => {
-          if (doc.id === this.currentMail) {
-            parametros.push(doc.data().cantFilesLoad);
-            parametros.push(doc.data().deposito);
-          }
-        });
-
-        return parametros;
+    if (this.usuario && this.usuario !== {}) {
+      return new Promise((resolve) => {
+        resolve(this.usuario);
       });
+    } else {
+      return this.db.collection('usuarios').get()
+        .then((docs) => {
+          docs.forEach((doc: any) => {
+            if (doc.id === this.currentMail) {
+              this.usuario = {
+                email: doc.id,
+                deposito: doc.data().deposito,
+                cantFilesLoad: doc.data().cantFilesLoad
+              };
+            }
+          });
+
+          return this.usuario;
+        });
+    }
   }
 
   public getProveedores(): Promise<any> {
-    return this.db.collection('proveedores').orderBy('nombre').get()
-      .then((docs) => {
-        const proveedores = [];
-        docs.forEach((doc: any) => {
-          proveedores.push({
-            nombre: doc.data().nombre,
-            multiplicador: doc.data().multiplicadorPed
-          });
-        });
-
-        return proveedores;
+    if (this.proveedores && this.proveedores.length > 0) {
+      return new Promise((resolve) => {
+        resolve(this.proveedores);
       });
+    } else {
+      return this.db.collection('proveedores').orderBy('nombre').get()
+        .then((docs) => {
+          docs.forEach((doc: any) => {
+            this.proveedores.push({
+              nombre: doc.data().nombre,
+              multiplicador: doc.data().multiplicadorPed
+            });
+          });
+
+          return this.proveedores;
+        });
+    }
   }
 }
