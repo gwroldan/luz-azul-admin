@@ -16,12 +16,12 @@ export class AppComponent {
               private dataService: DataService) {
     this.autorizacionService.isLogged()
       .subscribe((result) => {
-        if (result && result.uid) {
-          this.loggedIn = true;
+        this.loggedIn = this.autorizacionService.loggedIn;
+
+        if (this.loggedIn) {
           this.email = this.autorizacionService.getEmail();
           this.dataService.setCurrentMail(this.email);
         } else {
-          this.loggedIn = false;
           this.dataService.setCurrentMail();
         }
       }, () => {

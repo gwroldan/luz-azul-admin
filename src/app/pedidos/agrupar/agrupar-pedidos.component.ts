@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material';
 
@@ -10,6 +10,8 @@ import { NgxStepperComponent, StepperOptions } from 'ngx-stepper';
 import { LocalDataSource } from 'ng2-smart-table';
 
 import { DataService } from '../../services/data.service';
+import {Subscription} from 'rxjs/Subscription';
+
 
 type AOA = any[][];
 
@@ -18,7 +20,8 @@ type AOA = any[][];
   templateUrl: './agrupar-pedidos.component.html',
   styleUrls: ['./agrupar-pedidos.component.scss']
 })
-export class AgruparPedidosComponent implements OnInit {
+export class AgruparPedidosComponent implements OnInit, OnDestroy {
+
   // Properties DataTable
   private columns: Object = {
     codProducto: { title: 'Cod. Producto', editable: false },
@@ -72,20 +75,13 @@ export class AgruparPedidosComponent implements OnInit {
   public proveedores: any[];
   public proveedorSel: any;
 
+  public usuarioLoaded: boolean;
+  public proveedoresLoaded: boolean;
+  public subs: Subscription[] = [];
+
   constructor(private _iconRegistry: MatIconRegistry,
               private _sanitizer: DomSanitizer,
               private dataService: DataService) {
-    this.dataService.getDatosUsuario()
-      .then( (usuario) => {
-        this.cantFilesLoad = usuario.cantFilesLoad;
-        this.deposito = usuario.deposito;
-      });
-
-    this.dataService.getProveedores()
-      .then((proveedores: any) => {
-        this.proveedores = proveedores;
-        this.proveedorSel = this.proveedores[0];
-      });
   }
 
   public ngOnInit(): void {
@@ -93,6 +89,31 @@ export class AgruparPedidosComponent implements OnInit {
       .addSvgIcon('step-done', this._sanitizer.bypassSecurityTrustResourceUrl('assets/icon/done.svg'));
     this._iconRegistry
       .addSvgIcon('step-warning', this._sanitizer.bypassSecurityTrustResourceUrl('assets/icon/warning.svg'));
+
+    this.subs.push( this.dataService.valueDatosUsuario.asObservable().subscribe( usuario => {
+      this.usuarioLoaded = !!usuario;
+      if (this.usuarioLoaded) {
+        this.cantFilesLoad = usuario.cantFilesLoad;
+        this.deposito = usuario.deposito;
+      }
+    }));
+
+    this.subs.push( this.dataService.valueProveedores.asObservable().subscribe( proveedores => {
+      this.proveedoresLoaded = !!proveedores;
+      if (this.proveedoresLoaded) {
+        this.proveedores = proveedores;
+        this.proveedorSel = this.proveedores[0];
+      }
+    }));
+  }
+
+  public ngOnDestroy() {
+    this.subs.forEach( sub => {
+      if ( sub && sub.unsubscribe ) {
+        sub.unsubscribe();
+      }
+    });
+    this.subs.slice(0, this.subs.length);
   }
 
   // metodos para el manejo de datos
@@ -173,7 +194,7 @@ export class AgruparPedidosComponent implements OnInit {
         return detalle;
       })
       ;
-  }
+  };
 
   private confirmNextStep(): void {
     this.readMultipleFiles(this.internalFileModel)
@@ -373,8 +394,8 @@ export class AgruparPedidosComponent implements OnInit {
               title: 'Agrupado',
               text: 'Los pedidos se agruparon con exito.',
               type: 'success',
-            }).then(() => {
-              window.location.reload();
+            }).then( async () => {
+              await this.dataService.refreshALoBruto(['/agrupar-pedidos']);
             });
           }
         });
@@ -512,7 +533,7 @@ export class AgruparPedidosComponent implements OnInit {
         html: `<p>Los siguientes archivos no pertenecen al proveedor seleccionado:<p>
               ${nameFiles}
               Debe quitarlos para poder seguir adelante.`,
-      })
+      });
 
       return;
     }
@@ -592,7 +613,7 @@ export class AgruparPedidosComponent implements OnInit {
         'Error',
         'Debe ingresar un número entero mayor a 0.',
         'error'
-      )
+      );
       event.confirm.reject();
     }
   }

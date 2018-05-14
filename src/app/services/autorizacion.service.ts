@@ -6,10 +6,18 @@ import swal from 'sweetalert2';
 
 @Injectable()
 export class AutorizacionService {
+  public loggedIn = false;
 
   constructor(private angularFireAuth: AngularFireAuth,
               private router: Router) {
     this.isLogged();
+    this.angularFireAuth.authState.subscribe( result => {
+      if (result && result.uid) {
+        this.loggedIn = true;
+      } else {
+        this.loggedIn = false;
+      }
+    });
   }
 
   public login = (email, password) => {

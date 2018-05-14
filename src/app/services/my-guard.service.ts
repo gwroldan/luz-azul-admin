@@ -5,22 +5,19 @@ import { AutorizacionService } from './autorizacion.service';
 
 @Injectable()
 export class MyGuardService implements CanActivate {
-  loggedIn = false;
+
 
   constructor(private autorizacionService: AutorizacionService) {
-    this.autorizacionService.isLogged()
-      .subscribe((result) => {
-        if (result && result.uid) {
-          this.loggedIn = true;
-        } else {
-          this.loggedIn = false;
-        }
-      }, (error) => {
-        this.loggedIn = false;
-      });
   }
 
-  canActivate() {
-    return this.loggedIn;
+  canActivate(): Promise<boolean> {
+    if ( this.autorizacionService.loggedIn === false ) {
+      return new Promise( resolve => {
+        setTimeout( () => {
+          resolve( !!this.autorizacionService.loggedIn );
+        }, 1500);
+      });
+    }
+    return Promise.resolve(!!this.autorizacionService.loggedIn);
   }
 }

@@ -19,13 +19,15 @@ import { Routing } from './app.routing';
 import { AutorizacionService } from './services/autorizacion.service';
 import { MyGuardService } from './services/my-guard.service';
 import { DataService } from './services/data.service';
+import { BlankComponent } from './componentes/blank/blank.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     DashboardComponent,
-    AgruparPedidosComponent
+    AgruparPedidosComponent,
+    BlankComponent
   ],
   imports: [
     FormsModule,

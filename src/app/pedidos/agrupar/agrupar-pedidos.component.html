@@ -1,5 +1,5 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div class="container-fluid">
+<div class="container-fluid" *ngIf="usuarioLoaded && proveedoresLoaded">
   <div class="row mt-4">
     <div class="col-11 m-auto">
       <ngx-stepper #stepperDemo="stepper" [options]="optionsStepper">
@@ -37,6 +37,7 @@
                 <div class="col-8 m-auto">
                   <h3 class="text-center mb-5">Proveedor: {{ (proveedorSel && proveedorSel.nombre ? proveedorSel.nombre : "Proveedor") }}</h3>
                   <input-file
+                    #inputPluggin
                     inputId="pedidos"
                     inputAccept={{inputAccept}}
                     disableUpload="true"
