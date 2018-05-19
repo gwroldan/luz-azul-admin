@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material';
 
@@ -10,7 +10,7 @@ import { NgxStepperComponent, StepperOptions } from 'ngx-stepper';
 import { LocalDataSource } from 'ng2-smart-table';
 
 import { DataService } from '../../services/data.service';
-import {Subscription} from 'rxjs/Subscription';
+import { Subscription } from 'rxjs/Subscription';
 
 
 type AOA = any[][];
@@ -24,13 +24,14 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
 
   // Properties DataTable
   private columns: Object = {
-    codProducto: { title: 'Cod. Producto', editable: false },
-    descripcion: { title: 'Descripcion', editable: false },
-    cantPedida:  { title: 'Cant. Pedida', editable: true },
-    cantReal:    { title: 'Cant. Real', editable: false },
-    kgReales:    { title: 'Kg. Reales', editable: false },
-    kgPedidos:   { title: 'Kg. Pedidos', editable: false },
-    lote:        { title: 'Lote', editable: false }
+    codProducto:  { title: 'Cod. Producto', editable: false },
+    descripcion:  { title: 'Descripcion', editable: false },
+    cantPedida:   { title: 'Cant. Pedida', editable: true },
+    unidadMedida: { title: 'Unidad de Medida', editable: false },
+    cantReal:     { title: 'Cant. Real', editable: false },
+    kgReales:     { title: 'Kg. Reales', editable: false },
+    kgPedidos:    { title: 'Kg. Pedidos', editable: false },
+    lote:         { title: 'Lote', editable: false }
   };
   public settingsTable = {
     attr: { class: 'table' },
@@ -102,7 +103,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
       this.proveedoresLoaded = !!proveedores;
       if (this.proveedoresLoaded) {
         this.proveedores = proveedores;
-        this.proveedorSel = this.proveedores[0];
+        this.SelectProveedor(this.proveedores[0]);
       }
     }));
   }
@@ -120,13 +121,15 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
   private agruparDetalle(detalle) {
     detalle = detalle.sort();
     const detAgrupado: AOA = new Array(detalle.shift());
+    const coColCantPedida = 2;
+    const coColKgPedidos = 6;
     let codProducto: string = detAgrupado[0][0];
 
     detalle.forEach((det) => {
       if (det[0] === codProducto) {
         const index = detAgrupado.length - 1;
-        detAgrupado[index][2] = parseFloat(detAgrupado[index][2]) + parseFloat(det[2]);
-        detAgrupado[index][5] = parseFloat(detAgrupado[index][5]) + parseFloat(det[5]);
+        detAgrupado[index][coColCantPedida] = parseFloat(detAgrupado[index][coColCantPedida]) + parseFloat(det[coColCantPedida]);
+        detAgrupado[index][coColKgPedidos] = parseFloat(detAgrupado[index][coColKgPedidos]) + parseFloat(det[coColKgPedidos]);
       } else {
         codProducto = det[0];
         detAgrupado.push(det);
@@ -136,8 +139,8 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     detAgrupado.forEach((det) => {
       // det[2] = (parseFloat(det[2]) * this.proveedorSel.multiplicador).toFixed(0);
       // det[5] = (parseFloat(det[5]) * this.proveedorSel.multiplicador).toFixed(4);
-      det[2] = parseFloat(det[2]).toFixed(0);
-      det[5] = parseFloat(det[5]).toFixed(4);
+      det[coColCantPedida] = parseFloat(det[coColCantPedida]).toFixed(0);
+      det[coColKgPedidos] = parseFloat(det[coColKgPedidos]).toFixed(4);
     });
 
     return detAgrupado;
@@ -192,9 +195,8 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     return Promise.all(promises)
       .then(function() {
         return detalle;
-      })
-      ;
-  };
+      });
+  }
 
   private confirmNextStep(): void {
     this.readMultipleFiles(this.internalFileModel)
@@ -212,13 +214,14 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     detalle.forEach((det) => totalKg = totalKg + parseFloat(det.kgPedidos));
 
     detalle.push({
-      codProducto: undefined,
-      descripcion: undefined,
-      cantPedida:  undefined,
-      cantReal:    undefined,
-      kgReales:    undefined,
-      kgPedidos:   totalKg,
-      lote:        undefined
+      codProducto:   undefined,
+      descripcion:   undefined,
+      cantPedida:    undefined,
+      unidadMedida:  undefined,
+      cantReal:      undefined,
+      kgReales:      undefined,
+      kgPedidos:     totalKg,
+      lote:          undefined
     });
     return detalle;
   }
@@ -228,28 +231,29 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     const cabecera = [
       {
         codProducto: 'Empresa:', descripcion: 'Ensemble SRL',
-        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
       },
       {
         codProducto: 'Deposito:', descripcion: 'Agrupado',
-        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
       },
       {
         codProducto: 'Fecha:', descripcion: new Date(),
-        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
       },
       {
         codProducto: 'Clasificacion:', descripcion: this.proveedorSel.nombre,
-        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
       },
       {
         codProducto: '', descripcion: '',
-        cantPedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
+        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', lote: ''
       },
       {
         codProducto: 'Cod. Producto',
         descripcion: 'Descripcion',
         cantPedida: 'Cant. Pedida',
+        unidadMedida: 'Unidad de Medida',
         cantReal: 'Cant. Real',
         kgReales: 'Kg. Reales',
         kgPedidos: 'Kg. Pedidos',
