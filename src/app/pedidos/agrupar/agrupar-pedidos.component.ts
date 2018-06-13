@@ -10,8 +10,8 @@ import { NgxStepperComponent, StepperOptions } from 'ngx-stepper';
 import { LocalDataSource } from 'ng2-smart-table';
 
 import { DataService } from '../../services/data.service';
+import { StockService } from '../../services/stock.service';
 import { Subscription } from 'rxjs/Subscription';
-
 
 type AOA = any[][];
 
@@ -22,8 +22,8 @@ type AOA = any[][];
 })
 export class AgruparPedidosComponent implements OnInit, OnDestroy {
 
-  // Properties DataTable
-  private columns: Object = {
+  // Properties DataTableExport
+  private columnsExport: Object = {
     codProducto:  { title: 'Cod. Producto', editable: false },
     descripcion:  { title: 'Descripcion', editable: false },
     cantPedida:   { title: 'Cant. Pedida', editable: true },
@@ -32,6 +32,26 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     kgReales:     { title: 'Kg. Reales', editable: false },
     kgPedidos:    { title: 'Kg. Pedidos', editable: false },
     lote:         { title: 'Lote', editable: false }
+  };
+  public settingsTableExport = {
+    attr: { class: 'table' },
+    actions: false,
+    hideSubHeader: true,
+    columns: this.columnsExport,
+    pager: { display: false }
+  };
+  public sourceDataTableExport: LocalDataSource;
+
+  // Properties DataTable
+  private columns: Object = {
+    codProducto:   { title: 'Cod. Producto', editable: false },
+    descripcion:   { title: 'Descripcion', editable: false },
+    cantPedida:    { title: 'Cant. Pedida', editable: false },
+    multiplicador: { title: 'Multiplicador', editable: false },
+    stockActual:   { title: 'Stock Actual', editable: false },
+    cantAPedir:    { title: 'Cant. a Pedir', editable: true },
+    unidadMedida:  { title: 'Unidad de Medida', editable: false },
+    kgUnitario:     { title: 'Kg. Unitario', editable: false },
   };
   public settingsTable = {
     attr: { class: 'table' },
@@ -51,13 +71,6 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
   private internalFileErrors: Array<any> = new Array<any>();
   private fileName = 'PedidoAgrupado.xlsx';
 
-  // Properties InputFile Pedidos
-  // public inputFileModelStock: Array<any> = new Array<any>();
-  // public inputMaxFilesStock: number = 1;
-  // public inputAcceptStock: string = '.xls,.xlsx';
-  // private internalFileModelStock: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
-  // private internalFileErrorsStock: Array<any> = new Array<any>();
-
   // Properties Stepper
   @ViewChild('stepperDemo')
   public steppers: NgxStepperComponent;
@@ -71,10 +84,26 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     labelOf: 'de'
   };
 
-  public deposito: string;
-  public cantFilesLoad: number;
+  // Indices columnas Excel
+  private coColProductoId = 0;
+  private coColDescripcion = 1;
+  private coColCantPedida = 2;
+  private coColUnidadMedida = 3;
+  private coColKgPedidos = 6;
+
+  // Owner Properties
+  public usuario: {
+    depositoId: number;
+    deposito: string;
+    cantFilesLoad: number
+  } = {
+    depositoId: -1,
+    deposito: '',
+    cantFilesLoad: -1
+  };
   public proveedores: any[];
   public proveedorSel: any;
+  public stock: any[];
 
   public usuarioLoaded: boolean;
   public proveedoresLoaded: boolean;
@@ -82,7 +111,8 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
 
   constructor(private _iconRegistry: MatIconRegistry,
               private _sanitizer: DomSanitizer,
-              private dataService: DataService) {
+              private dataService: DataService,
+              private stockService: StockService) {
   }
 
   public ngOnInit(): void {
@@ -94,8 +124,15 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     this.subs.push( this.dataService.valueDatosUsuario.asObservable().subscribe( usuario => {
       this.usuarioLoaded = !!usuario;
       if (this.usuarioLoaded) {
-        this.cantFilesLoad = usuario.cantFilesLoad;
-        this.deposito = usuario.deposito;
+        this.usuario.depositoId = usuario.depositoId;
+        this.usuario.cantFilesLoad = usuario.cantFilesLoad;
+        this.usuario.deposito = usuario.deposito;
+
+        this.stockService
+          .getStock(this.usuario.depositoId)
+          .then((stock: any[]) => {
+            this.stock = stock;
+          });
       }
     }));
 
@@ -106,6 +143,8 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
         this.SelectProveedor(this.proveedores[0]);
       }
     }));
+
+
   }
 
   public ngOnDestroy() {
@@ -118,34 +157,6 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
   }
 
   // metodos para el manejo de datos
-  private agruparDetalle(detalle) {
-    detalle = detalle.sort();
-    const detAgrupado: AOA = new Array(detalle.shift());
-    const coColCantPedida = 2;
-    const coColKgPedidos = 6;
-    let codProducto: string = detAgrupado[0][0];
-
-    detalle.forEach((det) => {
-      if (det[0] === codProducto) {
-        const index = detAgrupado.length - 1;
-        detAgrupado[index][coColCantPedida] = parseFloat(detAgrupado[index][coColCantPedida]) + parseFloat(det[coColCantPedida]);
-        detAgrupado[index][coColKgPedidos] = parseFloat(detAgrupado[index][coColKgPedidos]) + parseFloat(det[coColKgPedidos]);
-      } else {
-        codProducto = det[0];
-        detAgrupado.push(det);
-      }
-    });
-
-    detAgrupado.forEach((det) => {
-      // det[2] = (parseFloat(det[2]) * this.proveedorSel.multiplicador).toFixed(0);
-      // det[5] = (parseFloat(det[5]) * this.proveedorSel.multiplicador).toFixed(4);
-      det[coColCantPedida] = parseFloat(det[coColCantPedida]).toFixed(0);
-      det[coColKgPedidos] = parseFloat(det[coColKgPedidos]).toFixed(4);
-    });
-
-    return detAgrupado;
-  }
-
   private readMultipleFiles = (files) => {
     let detalle: AOA;
 
@@ -198,10 +209,66 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
       });
   }
 
+  private agruparDetalle(detalle: AOA) {
+    detalle = detalle.sort();
+    const detAgrupado: AOA = new Array(detalle.shift());
+    let codProducto: string = detAgrupado[0][this.coColProductoId];
+
+    detalle.forEach((det) => {
+      if (det[this.coColProductoId] === codProducto) {
+        const index = detAgrupado.length - 1;
+        const cantPedida = parseFloat(detAgrupado[index][this.coColCantPedida]);
+        const KgPedidos = parseFloat(detAgrupado[index][this.coColKgPedidos]);
+
+        detAgrupado[index][this.coColCantPedida] = cantPedida + parseFloat(det[this.coColCantPedida]);
+        detAgrupado[index][this.coColKgPedidos] = KgPedidos + parseFloat(det[this.coColKgPedidos]);
+      } else {
+        codProducto = det[this.coColProductoId];
+        detAgrupado.push(det);
+      }
+    });
+
+    return detAgrupado;
+  }
+
+  private setCantidadAPedir(detalle: AOA) {
+    const detalleModif: AOA = new Array();
+    const coColMultiplicador = 3;
+    const coColStockActual = 4;
+    const coColCantAPedir = 5;
+    const coColUnidadMedida = 6;
+    const coColKgUnitario = 7;
+
+    for (let i = 0; i < detalle.length; i++) {
+      const det = new Array();
+
+      det[this.coColProductoId] = detalle[i][this.coColProductoId];
+      det[this.coColDescripcion] = detalle[i][this.coColDescripcion];
+      det[this.coColCantPedida] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
+      det[coColMultiplicador] = parseFloat(this.proveedorSel.multiplicador).toFixed(0);
+
+      const stock = this.stock.find( elem => elem.productoId === detalle[i][this.coColProductoId]);
+      const stockActual = (stock ? stock.stockActual : 0);
+      det[coColStockActual] = parseFloat(stockActual).toFixed(0);
+
+      const cantPedida = detalle[i][this.coColCantPedida] * this.proveedorSel.multiplicador;
+      det[coColCantAPedir] = (cantPedida - stockActual).toFixed(0);
+      det[coColUnidadMedida] = detalle[i][this.coColUnidadMedida];
+      det[coColKgUnitario] = (detalle[i][this.coColKgPedidos] / detalle[i][this.coColCantPedida]).toFixed(4);
+
+      detalleModif.push(det);
+    }
+
+    return detalleModif;
+  }
+
   private confirmNextStep(): void {
     this.readMultipleFiles(this.internalFileModel)
-      .then((detalle: AOA) => {
-        this.setSourceDataTable(this.agruparDetalle(detalle));
+      .then(async (det: AOA) => {
+        let detalle = this.agruparDetalle(det);
+        detalle = this.setCantidadAPedir(detalle);
+
+        this.setSourceDataTable(detalle);
         this.steppers.next();
       })
       .catch((err) => {
@@ -348,7 +415,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
   }
 
   protected exportFile() {
-    this.sourceDataTable.getAll()
+    this.sourceDataTableExport.getAll()
       .then((data) => {
         swal({
           title: 'Esta Seguro?',
@@ -460,58 +527,12 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     });
   }
 
-  // eventos para inputFile stock
-
-  // public onAcceptStock(file: any): void {
-  //   console.log('accept stock');
-  //
-  //   const reader = new FileReader();
-  //   reader.onload = (e: any) => {
-  //     const bstr: string = e.target.result;
-  //     const wb: XLSX.WorkBook = XLSX.read(bstr, {type: 'binary'});
-  //
-  //     /* grab first sheet */
-  //     const wsname: string = wb.SheetNames[0];
-  //     const ws: XLSX.WorkSheet = wb.Sheets[wsname];
-  //
-  //     /* save data */
-  //     const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
-  //     const depositoCell: string = tmp[7][3];
-  //
-  //     if (depositoCell === undefined || depositoCell.toUpperCase() !== this.deposito.toUpperCase()) {
-  //       this.internalFileErrorsStock.push(file);
-  //     } else {
-  //       this.internalFileModelStock.push(file);
-  //     }
-  //   };
-  //
-  //   reader.readAsBinaryString(file.file);
-  // }
-
-  // public onRemoveStock(file: any): void {
-  //   console.log('remove');
-  //   const indexFileModel = this.internalFileModelStock.indexOf(file);
-  //   const indexFileError = this.internalFileErrorsStock.indexOf(file);
-  //
-  //   if (indexFileModel !== -1) { this.internalFileModelStock.splice(indexFileModel, 1); }
-  //   if (indexFileError !== -1) { this.internalFileErrorsStock.splice(indexFileError, 1); }
-  // }
-
-  // public onLimitStock(): void {
-  //   console.log('limit');
-  // }
-
-  // public onRejectStock(): void {
-  //   console.log('reject');
-  //   swal({
-  //     type: 'warning',
-  //     title: 'Archivo Invalido',
-  //     html: `Solo se pueden cargar archivos con extension <b>${this.inputAcceptStock}</b>!`
-  //   });
-  // }
-
   // metodos Stepper
-  public previousStep(): void {
+  public previousStepSelProveedor(): void {
+    this.dataService.refreshALoBruto(['/agrupar-pedidos']).then();
+  }
+
+  public previousStepSelFiles(): void {
     this.steppers.back();
   }
 
@@ -523,7 +544,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     }
   }
 
-  public nextStepExport(): void {
+  public nextStepSetCantAPedir(): void {
     if (this.internalFileErrors.length > 0) {
       let nameFiles = '<ul>';
       for (let i = 0; i < this.internalFileErrors.length; i++) {
@@ -545,10 +566,10 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     if (this.internalFileModel.length > 1) {
       this.steppers.clearError();
 
-      if (this.internalFileModel.length !== this.cantFilesLoad) {
+      if (this.internalFileModel.length !== this.usuario.cantFilesLoad) {
         swal({
           title: 'Esta Seguro?',
-          text: `Deberian ser ${this.cantFilesLoad} pedidos para este Deposito. Desea seguir adelante de todas formas?`,
+          text: `Deberian ser ${this.usuario.cantFilesLoad} pedidos para este Deposito. Desea seguir adelante de todas formas?`,
           type: 'question',
           showCancelButton: true,
           cancelButtonText: 'No',
@@ -566,19 +587,32 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     }
   }
 
-  // public nextStepExport(): void {
-  //   if (this.internalFileErrorsStock.length > 0) {
-  //     this.steppers.error(`El archivo no pertenece a ${this.deposito}`);
-  //     return;
-  //   } else {
-  //     if (this.internalFileModelStock.length === 0) {
-  //       this.steppers.error('Debe seleccionar un archivo');
-  //       return;
-  //     } else {
-  //       this.confirmNextStep();
-  //     }
-  //   }
-  // }
+  public nextStepSetDataTableExport() {
+    this.sourceDataTable.getAll()
+      .then( data => {
+        const detDataTable: any[] = [];
+
+        data.forEach( det => {
+          if (det.cantAPedir > 0) {
+            const regTable: any = {};
+
+            regTable['codProducto'] = det.codProducto;
+            regTable['descripcion'] = det.descripcion;
+            regTable['cantPedida'] = det.cantAPedir;
+            regTable['unidadMedida'] = det.unidadMedida;
+            regTable['cantReal'] = '';
+            regTable['kgReales'] = '';
+            regTable['kgPedidos'] = (det.cantAPedir * det.kgUnitario).toFixed(4);
+            regTable['lote'] = '';
+
+            detDataTable.push(regTable);
+          }
+        })
+
+        this.sourceDataTableExport = new LocalDataSource(detDataTable);
+        this.steppers.next();
+      });
+  }
 
   // metodos DataTable
   private setSourceDataTable(detalle: AOA) {
@@ -592,7 +626,6 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
       for (let j = 0; j < row.length; j++) {
         regTable[keys[j]] = row[j];
       }
-      regTable['lote'] = '';
 
       detDataTable.push(regTable);
     }
@@ -601,12 +634,11 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
   }
 
   public checkUpdateRowDataTable(event: any) {
-    const cantPedida = event.newData.cantPedida;
+    const cantPedida = event.newData.cantAPedir;
     const valid: boolean = (cantPedida && cantPedida !== '' && !isNaN(cantPedida) && (cantPedida % 1 === 0) && (cantPedida > 0));
 
     if (valid) {
-      event.newData.cantPedida = parseFloat(cantPedida).toFixed(0);
-      event.newData.kgPedidos = ((event.data.kgPedidos / event.data.cantPedida) * event.newData.cantPedida).toFixed(4);
+      event.newData.cantAPedir = parseFloat(cantPedida).toFixed(0);
       this.sourceDataTable.update(event.data, event.newData)
         .then(() => {
           this.sourceDataTable.refresh();

@@ -13,6 +13,7 @@ export class DataService {
   private usuario: {
     email: string,
     deposito: string,
+    depositoId: number,
     cantFilesLoad: number
   };
 
@@ -49,6 +50,7 @@ export class DataService {
             this.usuario = {
               email: docSnap.id,
               deposito: doc.deposito,
+              depositoId: doc.depositoId,
               cantFilesLoad: doc.cantFilesLoad
             };
             this.valueDatosUsuario.next(this.usuario);

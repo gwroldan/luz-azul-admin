@@ -58,8 +58,8 @@
           </ngx-step-body>
           <ngx-step-actions>
             <div class="col-md-12 text-center">
-              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStep()">Atras</button>
-              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepExport()">Siguiente</button>
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStepSelProveedor()">Atras</button>
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepSetCantAPedir()">Siguiente</button>
             </div>
           </ngx-step-actions>
         </ngx-step>
@@ -79,7 +79,27 @@
           </ngx-step-body>
           <ngx-step-actions>
             <div class="col-md-12 text-center">
-              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStep()">Atras</button>
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStepSelFiles()">Atras</button>
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepSetDataTableExport()">Siguiente</button>
+            </div>
+          </ngx-step-actions>
+        </ngx-step>
+        <ngx-step [label]="'Exportar Pedido'">
+          <ngx-step-body>
+            <div class="container-fluid">
+              <div class="row mt-5">
+                <div class="col-11 m-auto">
+                  <ng2-smart-table
+                    [settings]="settingsTableExport"
+                    [source]="sourceDataTableExport">
+                  </ng2-smart-table>
+                </div>
+              </div>
+            </div>
+          </ngx-step-body>
+          <ngx-step-actions>
+            <div class="col-md-12 text-center">
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStepSelFiles()">Atras</button>
               <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="exportFile()">Exportar</button>
             </div>
           </ngx-step-actions>

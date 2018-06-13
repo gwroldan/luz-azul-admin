@@ -1,6 +1,7 @@
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 
 import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
@@ -19,6 +20,7 @@ import { Routing } from './app.routing';
 import { AutorizacionService } from './services/autorizacion.service';
 import { MyGuardService } from './services/my-guard.service';
 import { DataService } from './services/data.service';
+import { StockService } from './services/stock.service';
 import { BlankComponent } from './componentes/blank/blank.component';
 
 @NgModule({
@@ -38,12 +40,14 @@ import { BlankComponent } from './componentes/blank/blank.component';
     ChartsModule,
     AngularFireModule.initializeApp(environment.firebase),
     AngularFireAuthModule,
-    Routing
+    Routing,
+    HttpClientModule
   ],
   providers: [
     AutorizacionService,
     MyGuardService,
-    DataService
+    DataService,
+    StockService
   ],
   bootstrap: [AppComponent]
 })
