@@ -68,6 +68,7 @@
             <div class="container-fluid">
               <div class="row mt-5">
                 <div class="col-11 m-auto">
+                  <h3 *ngIf="!stock" class="text-center mb-5 d-block p-4 bg-danger text-white">No se pudo obtener el stock</h3>
                   <ng2-smart-table
                     [settings]="settingsTable"
                     [source]="sourceDataTable"

@@ -4,6 +4,7 @@ import * as firebase from 'firebase';
 import 'firebase/firestore';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Router} from '@angular/router';
+import {Observable} from 'rxjs/Observable';
 
 @Injectable()
 export class DataService {
@@ -25,7 +26,10 @@ export class DataService {
   public valueDatosUsuario: BehaviorSubject<any> = new BehaviorSubject(null);
   public valueProveedores: BehaviorSubject<any> = new BehaviorSubject(null);
 
+
   constructor(private router: Router) {
+    this.setNuevoUsuarioActivo(null, null);
+
     this.db = firebase.firestore();
     this.db.settings({timestampsInSnapshots: true});
     this.db.enablePersistence().catch((err) => {
@@ -47,13 +51,7 @@ export class DataService {
         docs.forEach((docSnap: any) => {
           const doc = docSnap.data();
           if (docSnap.id === this.currentMail) {
-            this.usuario = {
-              email: docSnap.id,
-              deposito: doc.deposito,
-              depositoId: doc.depositoId,
-              cantFilesLoad: doc.cantFilesLoad
-            };
-            this.valueDatosUsuario.next(this.usuario);
+            this.setNuevoUsuarioActivo(docSnap.id, doc);
           }
         });
       });
@@ -69,10 +67,37 @@ export class DataService {
       this.proveedores = proveedores;
       this.valueProveedores.next(proveedores);
     });
+
+
   }
 
-  public setCurrentMail(email?: string) {
-    this.currentMail = email;
+  public async setCurrentMail(email?: string) {
+    if ( this.usuario.email !== email ) {
+      if ( email ) {
+        const usuarioSnap = await this.db.collection('usuarios').doc(email).get();
+        const usuario = usuarioSnap.data();
+        this.setNuevoUsuarioActivo(email, usuario);
+      } else {
+        // Limpiar
+        this.setNuevoUsuarioActivo(null, null);
+      }
+      this.currentMail = email;
+    }
+  }
+
+  public setNuevoUsuarioActivo(id, doc) {
+    this.usuario = {
+      email: id,
+      deposito: null,
+      depositoId: null,
+      cantFilesLoad: null
+    };
+    if ( doc ) {
+      this.usuario.deposito = doc.deposito;
+      this.usuario.depositoId = doc.depositoId;
+      this.usuario.cantFilesLoad = doc.cantFilesLoad;
+    }
+    this.valueDatosUsuario.next(this.usuario);
   }
 
 

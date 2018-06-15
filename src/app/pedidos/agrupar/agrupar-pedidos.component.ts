@@ -121,7 +121,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     this._iconRegistry
       .addSvgIcon('step-warning', this._sanitizer.bypassSecurityTrustResourceUrl('assets/icon/warning.svg'));
 
-    this.subs.push( this.dataService.valueDatosUsuario.asObservable().subscribe( usuario => {
+    this.subs.push( this.dataService.valueDatosUsuario.subscribe( usuario => {
       this.usuarioLoaded = !!usuario;
       if (this.usuarioLoaded) {
         this.usuario.depositoId = usuario.depositoId;
@@ -133,15 +133,19 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
           .then((stock: any[]) => {
             this.stock = stock;
           });
+
+        console.log('Usuario Cargado: ', (this.usuario !== null && this.usuario !== undefined));
       }
     }));
 
-    this.subs.push( this.dataService.valueProveedores.asObservable().subscribe( proveedores => {
+    this.subs.push( this.dataService.valueProveedores.subscribe( proveedores => {
       this.proveedoresLoaded = !!proveedores;
       if (this.proveedoresLoaded) {
         this.proveedores = proveedores;
         this.SelectProveedor(this.proveedores[0]);
       }
+
+      console.log('Proveedores Cargados: ', (this.proveedores !== null && this.proveedores !== undefined));
     }));
 
 
@@ -245,13 +249,13 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
       det[this.coColProductoId] = detalle[i][this.coColProductoId];
       det[this.coColDescripcion] = detalle[i][this.coColDescripcion];
       det[this.coColCantPedida] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
-      det[coColMultiplicador] = parseFloat(this.proveedorSel.multiplicador).toFixed(0);
+      det[coColMultiplicador] = parseFloat(this.proveedorSel.multiplicador[this.usuario.depositoId]).toFixed(0);
 
-      const stock = this.stock.find( elem => elem.productoId === detalle[i][this.coColProductoId]);
+      const stock = (this.stock ? this.stock.find( elem => elem.productoId === detalle[i][this.coColProductoId]) : null);
       const stockActual = (stock ? stock.stockActual : 0);
       det[coColStockActual] = parseFloat(stockActual).toFixed(0);
 
-      const cantPedida = detalle[i][this.coColCantPedida] * this.proveedorSel.multiplicador;
+      const cantPedida = detalle[i][this.coColCantPedida] * this.proveedorSel.multiplicador[this.usuario.depositoId];
       det[coColCantAPedir] = (cantPedida - stockActual).toFixed(0);
       det[coColUnidadMedida] = detalle[i][this.coColUnidadMedida];
       det[coColKgUnitario] = (detalle[i][this.coColKgPedidos] / detalle[i][this.coColCantPedida]).toFixed(4);
@@ -607,7 +611,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
 
             detDataTable.push(regTable);
           }
-        })
+        });
 
         this.sourceDataTableExport = new LocalDataSource(detDataTable);
         this.steppers.next();

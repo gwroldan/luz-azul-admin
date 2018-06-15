@@ -3,19 +3,25 @@ import { Router } from '@angular/router';
 
 import { AngularFireAuth } from 'angularfire2/auth';
 import swal from 'sweetalert2';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
 @Injectable()
 export class AutorizacionService {
   public loggedIn = false;
+  public logged: BehaviorSubject<boolean>;
 
   constructor(private angularFireAuth: AngularFireAuth,
               private router: Router) {
     this.isLogged();
+    this.logged = new BehaviorSubject(false);
+
     this.angularFireAuth.authState.subscribe( result => {
       if (result && result.uid) {
         this.loggedIn = true;
+        this.logged.next(true);
       } else {
         this.loggedIn = false;
+        this.logged.next(false);
       }
     });
   }
