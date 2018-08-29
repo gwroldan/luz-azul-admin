@@ -5,7 +5,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://190.210.196.211:9569/api',
+  apiUrl: 'https://190.210.196.217:9569/api',
   firebase: {
     apiKey: 'AIzaSyCdiZ4mWRdFMvRSszHZjJLaKfTKnuRUQsc',
     authDomain: 'luz-azul-admin.firebaseapp.com',
