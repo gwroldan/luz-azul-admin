@@ -32,6 +32,14 @@
           <a class="dropdown-item" routerLink="">Nuevo</a>
         </div>
       </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-light font-weight-bold" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Sueldos
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" routerLinkActive="active" routerLink="control-liquidaciones">Control Liquidaciones</a>
+        </div>
+      </li>
     </ul>
     <ul class="navbar-nav ml-auto" *ngIf="!loggedIn">
       <li class="nav-item" routerLinkActive="active">
@@ -40,7 +48,7 @@
     </ul>
     <ul class="navbar-nav ml-auto" *ngIf="loggedIn">
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle text-light font-weight-bold" href="#" id="navbarDropdown3" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle text-light font-weight-bold" href="#" id="navbarDropdown4" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           {{ email }}
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">

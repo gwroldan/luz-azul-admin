@@ -7,7 +7,9 @@ import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { AgruparPedidosComponent } from './pedidos/agrupar/agrupar-pedidos.component';
+import { ControlLiquidacionesComponent } from './sueldos/control/control-liquidaciones.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { BlankComponent } from './componentes/blank/blank.component';
 
 import { InputFileModule } from 'ngx-input-file';
 import { NgxStepperModule } from 'ngx-stepper';
@@ -21,7 +23,7 @@ import { AutorizacionService } from './services/autorizacion.service';
 import { MyGuardService } from './services/my-guard.service';
 import { DataService } from './services/data.service';
 import { StockService } from './services/stock.service';
-import { BlankComponent } from './componentes/blank/blank.component';
+import { SueldosService } from './services/sueldos.service';
 
 @NgModule({
   declarations: [
@@ -29,6 +31,7 @@ import { BlankComponent } from './componentes/blank/blank.component';
     LoginComponent,
     DashboardComponent,
     AgruparPedidosComponent,
+    ControlLiquidacionesComponent,
     BlankComponent
   ],
   imports: [
@@ -47,7 +50,8 @@ import { BlankComponent } from './componentes/blank/blank.component';
     AutorizacionService,
     MyGuardService,
     DataService,
-    StockService
+    StockService,
+    SueldosService
   ],
   bootstrap: [AppComponent]
 })
