@@ -15,7 +15,10 @@ export class ControlLiquidacionesComponent implements OnInit, OnDestroy {
     empleado:    { title: 'Empleado', editable: false },
     sueldo:      { title: 'Sueldo Neto', editable: false },
     sueldoCpras: { title: 'Sueldo Compras', editable: false },
-    difSueldos:  { title: 'Dif. Sueldos', editable: false }
+    difSueldos:  { title: 'Dif. Sueldos', editable: false },
+    extra:       { title: 'Sueldo Extra', editable: false },
+    extraCpras:  { title: 'Extra Compras', editable: false },
+    difExtra:    { title: 'Dif. Extra', editable: false }
   };
   public settingsTable = {
     attr: { class: 'table' },

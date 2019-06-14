@@ -15,7 +15,8 @@ export class DataService {
     email: string,
     deposito: string,
     depositoId: number,
-    cantFilesLoad: number
+    cantFilesLoad: number,
+    administrador: boolean
   };
 
   private proveedores: {
@@ -46,8 +47,6 @@ export class DataService {
         includeQueryMetadataChanges: true,
         includeDocumentMetadataChanges: true
       }, (docs) => {
-        // console.log(docs);
-        // console.log(docs.metadata.fromCache);
         docs.forEach((docSnap: any) => {
           const doc = docSnap.data();
           if (docSnap.id === this.currentMail) {
@@ -67,8 +66,6 @@ export class DataService {
       this.proveedores = proveedores;
       this.valueProveedores.next(proveedores);
     });
-
-
   }
 
   public async setCurrentMail(email?: string) {
@@ -90,12 +87,14 @@ export class DataService {
       email: id,
       deposito: null,
       depositoId: null,
-      cantFilesLoad: null
+      cantFilesLoad: null,
+      administrador: false
     };
     if ( doc ) {
       this.usuario.deposito = doc.deposito;
       this.usuario.depositoId = doc.depositoId;
       this.usuario.cantFilesLoad = doc.cantFilesLoad;
+      this.usuario.administrador = doc.administrador;
     }
     this.valueDatosUsuario.next(this.usuario);
   }
