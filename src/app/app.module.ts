@@ -7,6 +7,7 @@ import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { AgruparPedidosComponent } from './pedidos/agrupar/agrupar-pedidos.component';
+import { AgruparPedidosLocalComponent } from './pedidos/agrupar/agrupar-pedidos-local.component';
 import { ControlLiquidacionesComponent } from './sueldos/control/control-liquidaciones.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { BlankComponent } from './componentes/blank/blank.component';
@@ -31,6 +32,7 @@ import { SueldosService } from './services/sueldos.service';
     LoginComponent,
     DashboardComponent,
     AgruparPedidosComponent,
+    AgruparPedidosLocalComponent,
     ControlLiquidacionesComponent,
     BlankComponent
   ],

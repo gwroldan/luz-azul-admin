@@ -1,0 +1,62 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div class="container-fluid" *ngIf="usuarioLoaded">
+  <div class="row mt-4">
+    <div class="col-11 m-auto">
+      <ngx-stepper #stepperLocal="stepper" [options]="optionsStepper">
+        <ngx-step [label]="'Seleccionar Pedidos'">
+          <ngx-step-body>
+            <div class="container-fluid">
+              <div class="row mt-5">
+                <div class="col-8 m-auto">
+                  <h3 class="text-center mb-5">Seleccione los pedidos de un local</h3>
+                  <input-file
+                    #inputPluggin
+                    inputId="pedidos"
+                    inputAccept={{inputAccept}}
+                    disableUpload="true"
+                    inputMaxFiles={{inputMaxFiles}}
+                    textBrowse="Buscar"
+                    textFileSelected="archivos seleccionados"
+                    textNoFile="No hay archivos seleccionados"
+                    textRemove="Borrar"
+                    [(model)]="inputFileModel"
+                    (acceptedFile)="onAcceptPedido($event)"
+                    (removedFile)="onRemovePedido($event)"
+                    (limitReached)="onLimitPedido($event)"
+                    (rejectedFile)="onRejectPedido($event)">
+                  </input-file>
+                </div>
+              </div>
+            </div>
+          </ngx-step-body>
+          <ngx-step-actions>
+            <div class="col-md-12 text-center">
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="nextStepReadFiles()">Siguiente</button>
+            </div>
+          </ngx-step-actions>
+        </ngx-step>
+        <ngx-step [label]="'Exportar Pedido'">
+          <ngx-step-body>
+            <div class="container-fluid">
+              <div class="row mt-5">
+                <div class="col-11 m-auto">
+                  <ng2-smart-table
+                    [settings]="settingsTableExport"
+                    [source]="sourceDataTableExport">
+                  </ng2-smart-table>
+                </div>
+              </div>
+            </div>
+          </ngx-step-body>
+          <ngx-step-actions>
+            <div class="col-md-12 text-center">
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="previousStepSelFiles()">Atras</button>
+              <button type="button" class="btn btn-primary btn-lg m-4 px-5" (click)="exportFile()">Exportar</button>
+            </div>
+          </ngx-step-actions>
+        </ngx-step>
+      </ngx-stepper>
+    </div>
+  </div>
+</div>
+
