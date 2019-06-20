@@ -54,14 +54,14 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     unidadMedida:  { title: 'Unidad de Medida', editable: false },
     kgUnitario:     { title: 'Kg. Unitario', editable: false },
   };
-  public settingsTable = {
+  /* public settingsTable = {
     attr: { class: 'table' },
     actions: { delete: false },
     hideSubHeader: true,
     columns: this.columns,
     edit: { confirmSave: true },
     pager: { display: false }
-  };
+  }; */
   public sourceDataTable: LocalDataSource;
 
   // Properties InputFile Pedidos
@@ -72,6 +72,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
   private internalFileErrors: Array<any> = new Array<any>();
   private fileName = 'PedidoAgrupado.xlsx';
   private empresaSel = '';
+  private depositoSel = '';
 
   // Properties Stepper
   @ViewChild('stepperLocal')
@@ -190,10 +191,10 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       .then(function() {
         return detalle;
       });
-  };
+  }
 
   private agruparDetalle(detalle: AOA) {
-    detalle = detalle.sort();
+    // detalle = detalle.sort();
     const detAgrupado: AOA = new Array(detalle.shift());
     let codProducto: string = detAgrupado[0][this.coColProductoId];
 
@@ -215,7 +216,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
   }
 
   private setCantidadAPedir(detalle: AOA) {
-    const detalleModif: AOA = new Array();
+    const detalleModif: AOA = [];
     const coColMultiplicador = 3;
     const coColStockActual = 4;
     const coColCantAPedir = 5;
@@ -223,7 +224,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     const coColKgUnitario = 7;
 
     for (let i = 0; i < detalle.length; i++) {
-      const det = new Array();
+      const det = [];
 
       det[this.coColProductoId] = detalle[i][this.coColProductoId];
       det[this.coColDescripcion] = detalle[i][this.coColDescripcion];
@@ -241,7 +242,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     return detalleModif;
   }
 
-  private confirmNextStep(): void {
+  private confirmNextStep = (): void => {
     this.readMultipleFiles(this.internalFileModel)
       .then(async (det: AOA) => {
         let detalle = this.agruparDetalle(det);
@@ -284,7 +285,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
         cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
       },
       {
-        codProducto: 'Deposito:', descripcion: 'Agrupado',
+        codProducto: 'Deposito:', descripcion: this.depositoSel,
         cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
       },
       {
@@ -443,7 +444,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
                 strDateFile = strDateFile.replace('/', '.');
                 strDateFile = strDateFile.replace('/', '.');
 
-                this.fileName = `Agrupado - ${this.empresaSel} - ${strDateFile}.xlsx`;
+                this.fileName = `Agrupado - ${this.empresaSel} - ${this.depositoSel} - ${strDateFile}.xlsx`;
                 saveAs(new Blob([s2ab(wbout)], { type: '' }), this.fileName);
 
                 resolve();
@@ -481,12 +482,15 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       /* save data */
       const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
       const empresaCell: string = tmp[0][1];
+      const depositoCell: string = tmp[1][1];
 
       if (this.empresaSel === '') {
         this.empresaSel = empresaCell;
+        this.depositoSel = depositoCell;
       }
 
-      if (empresaCell.toUpperCase() !== this.empresaSel.toUpperCase()) {
+      if ((empresaCell.toUpperCase() !== this.empresaSel.toUpperCase()) ||
+          (depositoCell.toUpperCase() !== this.depositoSel.toUpperCase())) {
         this.internalFileErrors.push(file);
       } else {
         this.internalFileModel.push(file);
@@ -504,7 +508,10 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     if (indexFileModel !== -1) { this.internalFileModel.splice(indexFileModel, 1); }
     if (indexFileError !== -1) { this.internalFileErrors.splice(indexFileError, 1); }
 
-    if (this.internalFileModel.length === 0) { this.empresaSel = ''; }
+    if (this.internalFileModel.length === 0) {
+      this.empresaSel = '';
+      this.depositoSel = '';
+    }
   }
 
   public onLimitPedido(): void {
@@ -602,27 +609,6 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
 
         this.sourceDataTableExport = new LocalDataSource(detDataTable);
       });
-  }
-
-  public checkUpdateRowDataTable(event: any) {
-    const cantPedida = event.newData.cantAPedir;
-    const valid: boolean = (cantPedida && cantPedida !== '' && !isNaN(cantPedida) && (cantPedida % 1 === 0) && (cantPedida > 0));
-
-    if (valid) {
-      event.newData.cantAPedir = parseFloat(cantPedida).toFixed(0);
-      this.sourceDataTable.update(event.data, event.newData)
-        .then(() => {
-          this.sourceDataTable.refresh();
-          event.confirm.resolve();
-        });
-    } else {
-      swal(
-        'Error',
-        'Debe ingresar un número entero mayor a 0.',
-        'error'
-      );
-      event.confirm.reject();
-    }
   }
 
 }
