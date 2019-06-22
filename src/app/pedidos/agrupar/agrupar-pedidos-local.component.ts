@@ -158,12 +158,14 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
           /* save data */
           const tmp: AOA = <AOA>(XLSX.utils.sheet_to_json(ws, {header: 1}));
           const firstCell: string = tmp[0][0];
-          let tmpData: AOA;
+
+          /* Cabecera Clasificación */
+          let tmpData: AOA = tmp[3];
 
           if (firstCell.startsWith('Empresa')) {
-            tmpData = tmp;
-            tmpData.splice(0, tmpData.findIndex((row) => row[0] === 'Cod. Producto') + 1);
-            tmpData.splice(tmpData.findIndex((row) => row[0] === undefined));
+            tmp.splice(0, tmp.findIndex((row) => row[0] === 'Cod. Producto') + 1);
+            tmp.splice(tmp.findIndex((row) => row[0] === undefined));
+            tmpData = [ tmpData, ...tmp ];
           }
 
           resolve(tmpData);
@@ -194,23 +196,43 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
   }
 
   private agruparDetalle(detalle: AOA) {
-    // detalle = detalle.sort();
     const detAgrupado: AOA = new Array(detalle.shift());
-    let codProducto: string = detAgrupado[0][this.coColProductoId];
+    detAgrupado[detAgrupado.length] = detalle.shift();
 
     detalle.forEach((det) => {
-      if (det[this.coColProductoId] === codProducto) {
-        const index = detAgrupado.length - 1;
-        const cantPedida = parseFloat(detAgrupado[index][this.coColCantPedida]);
-        const KgPedidos = parseFloat(detAgrupado[index][this.coColKgPedidos]);
+      let index = -1;
+      let i = 0;
 
-        detAgrupado[index][this.coColCantPedida] = cantPedida + parseFloat(det[this.coColCantPedida]);
-        detAgrupado[index][this.coColKgPedidos] = KgPedidos + parseFloat(det[this.coColKgPedidos]);
+      while ((detAgrupado.length > 0) && (index === -1)
+        && (i < detAgrupado.length)) {
+        if (detAgrupado[i][this.coColProductoId] === det[this.coColProductoId]) {
+          index = i;
+
+          // Si es una cabecera hay que determinar si es la misma clasificacion
+          if (det[this.coColProductoId] === 'Clasificacion:' && det[this.coColDescripcion] !== detAgrupado[i][this.coColDescripcion]) {
+            index = -1;
+            i = i + 1;
+          }
+        } else {
+          i = i + 1;
+        }
+      }
+
+      if (index !== -1) {
+        // Si existe la cabecera no hay que volver a agregarla
+        if (det[this.coColProductoId] !== 'Clasificacion:') {
+          const cantPedida = parseFloat(detAgrupado[index][this.coColCantPedida]);
+          const KgPedidos = parseFloat(detAgrupado[index][this.coColKgPedidos]);
+
+          detAgrupado[index][this.coColCantPedida] = cantPedida + parseFloat(det[this.coColCantPedida]);
+          detAgrupado[index][this.coColKgPedidos] = KgPedidos + parseFloat(det[this.coColKgPedidos]);
+        }
       } else {
-        codProducto = det[this.coColProductoId];
         detAgrupado.push(det);
       }
     });
+
+    console.log(detAgrupado);
 
     return detAgrupado;
   }
@@ -226,17 +248,22 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     for (let i = 0; i < detalle.length; i++) {
       const det = [];
 
-      det[this.coColProductoId] = detalle[i][this.coColProductoId];
-      det[this.coColDescripcion] = detalle[i][this.coColDescripcion];
-      det[this.coColCantPedida] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
-      det[coColMultiplicador] = 1;
-      det[coColStockActual] = 0;
+      // Si es Cabecera
+      if (detalle[i][0].toString().startsWith('Clasificacion')) {
+        detalleModif.push(detalle[i]);
+      } else {
+        det[this.coColProductoId] = detalle[i][this.coColProductoId];
+        det[this.coColDescripcion] = detalle[i][this.coColDescripcion];
+        det[this.coColCantPedida] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
+        det[coColMultiplicador] = 1;
+        det[coColStockActual] = 0;
 
-      det[coColCantAPedir] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
-      det[coColUnidadMedida] = detalle[i][this.coColUnidadMedida];
-      det[coColKgUnitario] = (detalle[i][this.coColKgPedidos] / detalle[i][this.coColCantPedida]).toFixed(4);
+        det[coColCantAPedir] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
+        det[coColUnidadMedida] = detalle[i][this.coColUnidadMedida];
+        det[coColKgUnitario] = (detalle[i][this.coColKgPedidos] / detalle[i][this.coColCantPedida]).toFixed(4);
 
-      detalleModif.push(det);
+        detalleModif.push(det);
+      }
     }
 
     return detalleModif;
@@ -259,10 +286,78 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
   }
 
   private sumKilogramos(detalle): any[] {
-    let totalKg = 0;
-    detalle.forEach((det) => totalKg = totalKg + parseFloat(det.kgPedidos));
+    const detalleSum: any[] = detalle.splice(0, 1);
+    detalleSum.push({
+      codProducto:  'Cod. Producto',
+      descripcion:  'Descripcion',
+      cantPedida:   'Cant. Pedida',
+      unidadMedida: 'Un. de Medida',
+      cantReal:     'Cant. Real',
+      kgReales:     'Kg. Reales',
+      kgPedidos:    'Kg. Pedidos',
+      promedio:     'Promedio',
+      lote:         'Lote',
+      operario:     'Operario'
+    });
 
-    detalle.push({
+    let totalKg = 0;
+    let subtotalKg = 0;
+    let cantItems = 0;
+
+    detalle.forEach((det) => {
+      if (det.codProducto === 'Clasificacion:') {
+        detalleSum.push({
+          codProducto:   'Cant. Items: ' + cantItems,
+          descripcion:   undefined,
+          cantPedida:    undefined,
+          unidadMedida:  undefined,
+          cantReal:      undefined,
+          kgReales:      undefined,
+          kgPedidos:     subtotalKg,
+          promedio:      undefined,
+          lote:          undefined,
+          operario:      undefined
+        });
+
+        detalleSum.push(det);
+        detalleSum.push({
+          codProducto:  'Cod. Producto',
+          descripcion:  'Descripcion',
+          cantPedida:   'Cant. Pedida',
+          unidadMedida: 'Un. de Medida',
+          cantReal:     'Cant. Real',
+          kgReales:     'Kg. Reales',
+          kgPedidos:    'Kg. Pedidos',
+          promedio:     'Promedio',
+          lote:         'Lote',
+          operario:     'Operario'
+        });
+
+        subtotalKg = 0;
+        cantItems = 0;
+      } else {
+        totalKg = totalKg + parseFloat(det.kgPedidos);
+        subtotalKg = subtotalKg + parseFloat(det.kgPedidos);
+        cantItems = cantItems + 1;
+
+        detalleSum.push(det);
+      }
+    });
+
+    detalleSum.push({
+      codProducto:   'Cant. Items: ' + cantItems,
+      descripcion:   undefined,
+      cantPedida:    undefined,
+      unidadMedida:  undefined,
+      cantReal:      undefined,
+      kgReales:      undefined,
+      kgPedidos:     subtotalKg,
+      promedio:      undefined,
+      lote:          undefined,
+      operario:      undefined
+    });
+
+    detalleSum.push({
       codProducto:   undefined,
       descripcion:   undefined,
       cantPedida:    undefined,
@@ -274,7 +369,8 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       lote:          undefined,
       operario:      undefined
     });
-    return detalle;
+
+    return detalleSum;
   }
 
   private setCabeceraWorkSheet(data: any[]): any[] {
@@ -282,11 +378,11 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     const cabecera = [
       {
         codProducto: 'Empresa:', descripcion: this.empresaSel,
-        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        cantPedida: '', unidadMedida: '', cantReal: 'Bultos:', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
       },
       {
         codProducto: 'Deposito:', descripcion: this.depositoSel,
-        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        cantPedida: '', unidadMedida: '', cantReal: 'Canastos:', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
       },
       {
         codProducto: 'Fecha:', descripcion: new Date(),
@@ -299,18 +395,6 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       {
         codProducto: '', descripcion: '',
         cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
-      },
-      {
-        codProducto: 'Cod. Producto',
-        descripcion: 'Descripcion',
-        cantPedida: 'Cant. Pedida',
-        unidadMedida: 'Un. de Medida',
-        cantReal: 'Cant. Real',
-        kgReales: 'Kg. Reales',
-        kgPedidos: 'Kg. Pedidos',
-        promedio: 'Promedio',
-        lote: 'Lote',
-        operario: 'Operario'
       }
     ];
 
@@ -343,58 +427,76 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     ws['!rows'] = wsRows;
 
     // format data
-    arrChar.forEach((element) => {
+    arrChar.forEach((column) => {
       let maxChars = 6;
 
       for (let i = firstNumber; i <= lastNumber; i++) {
         // Si es undefined lo pongo '' (vacio)
-        ws[`${element}${i}`].v = (ws[`${element}${i}`].v === undefined ? '' : ws[`${element}${i}`].v);
+        ws[`${column}${i}`].v = (ws[`${column}${i}`].v === undefined ? '' : ws[`${column}${i}`].v);
         // Busco el valor con mas caracteres
-        maxChars = (ws[`${element}${i}`].v.length > maxChars ? ws[`${element}${i}`].v.length : maxChars);
+        maxChars = (ws[`${column}${i}`].v.length > maxChars ? ws[`${column}${i}`].v.length : maxChars);
 
         // Datos antes de Cabecera del Detalle
         if (i < firstNumberCabDet) {
-          ws[`${element}${i}`].s = {
+          ws[`${column}${i}`].s = {
             font: {sz: 14, bold: true}
           };
         } else {
-            // por defecto para todas las celdas
-            ws[`${element}${i}`].t = 's';
-            ws[`${element}${i}`].s = { font: {sz: 12} };
+          // por defecto para todas las celdas
+          ws[`${column}${i}`].t = 's';
+          ws[`${column}${i}`].s = {font: {sz: 12}};
 
-            // formato para el ultimo registro
-            if (i === lastNumber) {
-              ws[`${element}${i}`].s.font.bold = true;
+          // formato para el ultimo registro
+          if (i === lastNumber) {
+            ws[`${column}${i}`].s.font.bold = true;
+          } else {
+            ws[`${column}${i}`].s.border = {
+              top: {style: 'thin', color: {auto: 1}},
+              bottom: {style: 'thin', color: {auto: 1}},
+              left: {style: 'thin', color: {auto: 1}},
+              right: {style: 'thin', color: {auto: 1}}
+            };
+          }
+
+          // formato cabecera del detalle
+          if (
+            (ws[`A${i}`].v.toString().startsWith('Cod. Producto')) ||
+            (ws[`A${i}`].v.toString().startsWith('Clasificacion')) ||
+            (ws[`A${i}`].v.toString().startsWith('Cant'))
+          ) {
+            ws[`${column}${i}`].s['fill'] = {
+              bgColor: {indexed: 64},
+              fgColor: {rgb: '00000000'},
+              patternType: 'solid'
+            };
+            ws[`${column}${i}`].s['font']['color'] = {rgb: 'FFFFFF'};
+            ws[`${column}${i}`].s['font']['bold'] = true;
+
+            if (ws[`A${i}`].v.toString().startsWith('Cod. Producto')) {
+              ws[`${column}${i}`].s['alignment'] = {horizontal: 'center'};
+              ws[`${column}${i}`].s.border = {
+                top: {style: 'thin', color: {rgb: 'FFFFFF'}},
+                bottom: {style: 'thin', color: {rgb: 'FFFFFF'}},
+                left: {style: 'thin', color: (`${column}` === firstChar) ? {auto: 1} : {rgb: 'FFFFFF'}},
+                right: {style: 'thin', color: (`${column}` === lastChar) ? {auto: 1} : {rgb: 'FFFFFF'}}
+              };
             } else {
-              ws[`${element}${i}`].s.border = {
-                top: {style: 'thin', color: {auto: 1}},
-                bottom: {style: 'thin', color: {auto: 1}},
-                left: {style: 'thin', color: {auto: 1}},
-                right: {style: 'thin', color: {auto: 1}}
+              ws[`${column}${i}`].s.border = {
+                top: {style: 'thin', color: {rgb: 'FFFFFF'}},
+                bottom: {style: 'thin', color: {rgb: 'FFFFFF'}},
               };
             }
+          }
 
-            // formato cabecera del detalle
-            if (i === firstNumberCabDet) {
-              ws[`${element}${i}`].s['fill'] = {
-                bgColor: {indexed: 64},
-                fgColor: {rgb: '00000000'},
-                patternType: 'solid'
-              };
-              ws[`${element}${i}`].s['font']['color'] = {rgb: 'FFFFFF'};
-              ws[`${element}${i}`].s['font']['bold'] = true;
-              ws[`${element}${i}`].s['alignment'] = {horizontal: 'center'};
-            }
-
-            if (!isNaN(ws[`${element}${i}`].v) && element !== firstChar) {
-              ws[`${element}${i}`].t = 'n';
-              ws[`${element}${i}`].s['numFmt'] = '0.0000';
-            }
+          if (!isNaN(ws[`${column}${i}`].v) && column !== firstChar) {
+            ws[`${column}${i}`].t = 'n';
+            ws[`${column}${i}`].s['numFmt'] = '0.0000';
+          }
         }
       }
 
       // Agrego el ancho columna
-      wsCols.push({ wch: maxChars + 2 });
+      wsCols.push({wch: maxChars + 2});
     });
 
     ws['!cols'] = wsCols;
@@ -588,17 +690,34 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       .then( data => {
         const detDataTable: any[] = [];
 
+        console.log(data);
+
         data.forEach( det => {
-          if (det.cantAPedir > 0) {
+          if (
+            (det.cantAPedir > 0) ||
+            (det.codProducto.startsWith('Clasificacion')) ||
+            (det.codProducto.startsWith('Cant'))
+          ) {
             const regTable: any = {};
 
-            regTable['codProducto'] = det.codProducto;
-            regTable['descripcion'] = det.descripcion;
-            regTable['cantPedida'] = det.cantAPedir;
-            regTable['unidadMedida'] = det.unidadMedida;
-            regTable['cantReal'] = '';
+            // Si es Cabecera o Pie
+            if ((det.codProducto.startsWith('Clasificacion')) ||
+              (det.codProducto.startsWith('Cant'))) {
+              regTable['codProducto'] = det.codProducto;
+              regTable['descripcion'] = det.descripcion;
+              regTable['cantPedida'] = '';
+              regTable['unidadMedida'] = '';
+              regTable['kgPedidos'] = (det.codProducto.startsWith('Cant') ? det.unidadMedida : '');
+            } else {
+              regTable['codProducto'] = det.codProducto;
+              regTable['descripcion'] = det.descripcion;
+              regTable['cantPedida'] = det.cantAPedir;
+              regTable['unidadMedida'] = det.unidadMedida;
+              regTable['kgPedidos'] = (det.cantAPedir * det.kgUnitario).toFixed(4);
+            }
+
             regTable['kgReales'] = '';
-            regTable['kgPedidos'] = (det.cantAPedir * det.kgUnitario).toFixed(4);
+            regTable['cantReal'] = '';
             regTable['promedio'] = '';
             regTable['lote'] = '';
             regTable['operario'] = '';
@@ -607,6 +726,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
           }
         });
 
+        console.log(detDataTable);
         this.sourceDataTableExport = new LocalDataSource(detDataTable);
       });
   }
