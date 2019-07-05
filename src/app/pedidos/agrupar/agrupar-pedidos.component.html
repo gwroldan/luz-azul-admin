@@ -52,6 +52,10 @@
                     (limitReached)="onLimitPedido($event)"
                     (rejectedFile)="onRejectPedido($event)">
                   </input-file>
+                  <div class="col-2 m-auto pt-3 custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="defaultChecked" [(ngModel)]="isChecked">
+                    <label class="h5 custom-control-label" for="defaultChecked">Descontar Stock</label>
+                  </div>
                 </div>
               </div>
             </div>

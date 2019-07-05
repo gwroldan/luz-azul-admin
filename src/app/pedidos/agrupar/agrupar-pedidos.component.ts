@@ -104,6 +104,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
   public proveedores: any[];
   public proveedorSel: any;
   public stock: any[];
+  public isChecked: boolean = true;
 
   public usuarioLoaded: boolean;
   public proveedoresLoaded: boolean;
@@ -251,7 +252,9 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
       det[this.coColCantPedida] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
       det[coColMultiplicador] = parseFloat(this.proveedorSel.multiplicador[this.usuario.depositoId]).toFixed(0);
 
-      const stock = (this.stock ? this.stock.find( elem => elem.productoId === detalle[i][this.coColProductoId]) : null);
+      const stock = ((this.stock && this.isChecked)
+        ? this.stock.find( elem => elem.productoId === detalle[i][this.coColProductoId])
+        : null);
       const stockActual = (stock ? stock.stockActual : 0);
       det[coColStockActual] = parseFloat(stockActual).toFixed(0);
 
