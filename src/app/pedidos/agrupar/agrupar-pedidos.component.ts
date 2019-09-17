@@ -381,7 +381,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
         } else {
             // por defecto para todas las celdas
             ws[`${element}${i}`].t = 's';
-            ws[`${element}${i}`].s = { font: {sz: 12} };
+            ws[`${element}${i}`].s = { font: {sz: 14} };
 
             // formato para el ultimo registro
             if (i === lastNumber) {

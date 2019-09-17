@@ -378,11 +378,11 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     const cabecera = [
       {
         codProducto: 'Empresa:', descripcion: this.empresaSel,
-        cantPedida: '', unidadMedida: '', cantReal: 'Bultos:', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        cantPedida: '', unidadMedida: '', cantReal: 'Bultos:', kgReales: '', kgPedidos: 'Separó:', promedio: '', lote: '', operario: ''
       },
       {
         codProducto: 'Deposito:', descripcion: this.depositoSel,
-        cantPedida: '', unidadMedida: '', cantReal: 'Canastos:', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        cantPedida: '', unidadMedida: '', cantReal: 'Canastos:', kgReales: '', kgPedidos: 'Pesó:', promedio: '', lote: '', operario: ''
       },
       {
         codProducto: 'Fecha:', descripcion: new Date(),
@@ -444,7 +444,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
         } else {
           // por defecto para todas las celdas
           ws[`${column}${i}`].t = 's';
-          ws[`${column}${i}`].s = {font: {sz: 12}};
+          ws[`${column}${i}`].s = {font: {sz: 14}};
 
           // formato para el ultimo registro
           if (i === lastNumber) {
