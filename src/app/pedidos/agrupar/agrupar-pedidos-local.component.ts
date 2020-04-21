@@ -386,7 +386,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       },
       {
         codProducto: 'Fecha:', descripcion: new Date(),
-        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        cantPedida: '', unidadMedida: '', cantReal: 'Pallets:', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
       },
       {
         codProducto: 'Clasificacion:', descripcion: 'Varias',
