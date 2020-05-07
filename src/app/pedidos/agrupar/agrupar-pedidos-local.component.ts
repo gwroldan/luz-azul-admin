@@ -23,16 +23,17 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
 
   // Properties DataTableExport
   private columnsExport: Object = {
-    codProducto:  { title: 'Cod. Producto', editable: false },
-    descripcion:  { title: 'Descripcion', editable: false },
-    cantPedida:   { title: 'Cant. Pedida', editable: true },
-    unidadMedida: { title: 'Unidad de Medida', editable: false },
-    cantReal:     { title: 'Cant. Real', editable: false },
-    kgReales:     { title: 'Kg. Reales', editable: false },
-    kgPedidos:    { title: 'Kg. Pedidos', editable: false },
-    promedio:     { title: 'Promedio', editable: false },
-    lote:         { title: 'Lote', editable: false },
-    operario:     { title: 'Operario', editable: false }
+    codProducto:    { title: 'Cod. Producto', editable: false },
+    descripcion:    { title: 'Descripcion', editable: false },
+    cantPedida:     { title: 'Cant. Pedida', editable: true },
+    unidadMedida:   { title: 'Unidad de Medida', editable: false },
+    cantReal:       { title: '', editable: false, width: '0%' },
+    kgReales:       { title: '', editable: false, width: '0%' },
+    kgPedidos:      { title: 'Kg. Pedidos', editable: false },
+    promedio:       { title: '', editable: false, width: '0%' },
+    lote:           { title: '', editable: false, width: '0%' },
+    operario:       { title: '', editable: false, width: '0%' },
+    observaciones:  { title: 'Observaciones', editable: false }
   };
   public settingsTableExport = {
     attr: { class: 'table' },
@@ -52,7 +53,8 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     stockActual:   { title: 'Stock Actual', editable: false },
     cantAPedir:    { title: 'Cant. a Pedir', editable: true },
     unidadMedida:  { title: 'Unidad de Medida', editable: false },
-    kgUnitario:     { title: 'Kg. Unitario', editable: false },
+    kgUnitario:    { title: 'Kg. Unitario', editable: false },
+    observaciones: { title: 'Observaciones', editable: false }
   };
   /* public settingsTable = {
     attr: { class: 'table' },
@@ -93,6 +95,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
   private coColCantPedida = 2;
   private coColUnidadMedida = 3;
   private coColKgPedidos = 6;
+  private coColObservaciones = 10;
 
   // Owner Properties
   public usuario: {
@@ -232,8 +235,6 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       }
     });
 
-    console.log(detAgrupado);
-
     return detAgrupado;
   }
 
@@ -244,6 +245,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
     const coColCantAPedir = 5;
     const coColUnidadMedida = 6;
     const coColKgUnitario = 7;
+    const coColObs = 8;
 
     for (let i = 0; i < detalle.length; i++) {
       const det = [];
@@ -261,6 +263,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
         det[coColCantAPedir] = parseFloat(detalle[i][this.coColCantPedida]).toFixed(0);
         det[coColUnidadMedida] = detalle[i][this.coColUnidadMedida];
         det[coColKgUnitario] = (detalle[i][this.coColKgPedidos] / detalle[i][this.coColCantPedida]).toFixed(4);
+        det[coColObs] = detalle[i][this.coColObservaciones];
 
         detalleModif.push(det);
       }
@@ -288,16 +291,17 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
   private sumKilogramos(detalle): any[] {
     const detalleSum: any[] = detalle.splice(0, 1);
     detalleSum.push({
-      codProducto:  'Cod. Producto',
-      descripcion:  'Descripcion',
-      cantPedida:   'Cant. Pedida',
-      unidadMedida: 'Un. de Medida',
-      cantReal:     'Cant. Real',
-      kgReales:     'Kg. Reales',
-      kgPedidos:    'Kg. Pedidos',
-      promedio:     'Promedio',
-      lote:         'Lote',
-      operario:     'Operario'
+      codProducto:   'Cod. Producto',
+      descripcion:   'Descripcion',
+      cantPedida:    'Cant. Pedida',
+      unidadMedida:  'Un. de Medida',
+      cantReal:      'Cant. Real',
+      kgReales:      'Kg. Reales',
+      kgPedidos:     'Kg. Pedidos',
+      promedio:      'Promedio',
+      lote:          'Lote',
+      operario:      'Operario',
+      observaciones: 'Observaciones'
     });
 
     let totalKg = 0;
@@ -316,21 +320,23 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
           kgPedidos:     subtotalKg,
           promedio:      undefined,
           lote:          undefined,
-          operario:      undefined
+          operario:      undefined,
+          observaciones: undefined
         });
 
         detalleSum.push(det);
         detalleSum.push({
-          codProducto:  'Cod. Producto',
-          descripcion:  'Descripcion',
-          cantPedida:   'Cant. Pedida',
-          unidadMedida: 'Un. de Medida',
-          cantReal:     'Cant. Real',
-          kgReales:     'Kg. Reales',
-          kgPedidos:    'Kg. Pedidos',
-          promedio:     'Promedio',
-          lote:         'Lote',
-          operario:     'Operario'
+          codProducto:   'Cod. Producto',
+          descripcion:   'Descripcion',
+          cantPedida:    'Cant. Pedida',
+          unidadMedida:  'Un. de Medida',
+          cantReal:      'Cant. Real',
+          kgReales:      'Kg. Reales',
+          kgPedidos:     'Kg. Pedidos',
+          promedio:      'Promedio',
+          lote:          'Lote',
+          operario:      'Operario',
+          observaciones: 'Observaciones'
         });
 
         subtotalKg = 0;
@@ -354,7 +360,8 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       kgPedidos:     subtotalKg,
       promedio:      undefined,
       lote:          undefined,
-      operario:      undefined
+      operario:      undefined,
+      observaciones: undefined
     });
 
     detalleSum.push({
@@ -367,34 +374,34 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       kgPedidos:     totalKg,
       promedio:      undefined,
       lote:          undefined,
-      operario:      undefined
+      operario:      undefined,
+      observaciones: undefined
     });
 
     return detalleSum;
   }
 
   private setCabeceraWorkSheet(data: any[]): any[] {
-
     const cabecera = [
       {
-        codProducto: 'Empresa:', descripcion: this.empresaSel,
-        cantPedida: '', unidadMedida: '', cantReal: 'Bultos:', kgReales: '', kgPedidos: 'Separó:', promedio: '', lote: '', operario: ''
+        codProducto: 'Empresa:', descripcion: this.empresaSel, cantPedida: '', unidadMedida: '',
+        cantReal: 'Bultos:', kgReales: '', kgPedidos: 'Separó:', promedio: '', lote: '', operario: '', observaciones: '',
       },
       {
-        codProducto: 'Deposito:', descripcion: this.depositoSel,
-        cantPedida: '', unidadMedida: '', cantReal: 'Canastos:', kgReales: '', kgPedidos: 'Pesó:', promedio: '', lote: '', operario: ''
+        codProducto: 'Deposito:', descripcion: this.depositoSel, cantPedida: '', unidadMedida: '',
+        cantReal: 'Canastos:', kgReales: '', kgPedidos: 'Pesó:', promedio: '', lote: '', operario: '', observaciones: '',
       },
       {
-        codProducto: 'Fecha:', descripcion: new Date(),
-        cantPedida: '', unidadMedida: '', cantReal: 'Pallets:', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        codProducto: 'Fecha:', descripcion: new Date(), cantPedida: '', unidadMedida: '',
+        cantReal: 'Pallets:', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: '', observaciones: '',
       },
       {
-        codProducto: 'Clasificacion:', descripcion: 'Varias',
-        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        codProducto: 'Clasificacion:', descripcion: 'Varias', cantPedida: '', unidadMedida: '',
+        cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: '', observaciones: '',
       },
       {
-        codProducto: '', descripcion: '',
-        cantPedida: '', unidadMedida: '', cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: ''
+        codProducto: '', descripcion: '', cantPedida: '', unidadMedida: '',
+        cantReal: '', kgReales: '', kgPedidos: '', promedio: '', lote: '', operario: '', observaciones: '',
       }
     ];
 
@@ -690,8 +697,6 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       .then( data => {
         const detDataTable: any[] = [];
 
-        console.log(data);
-
         data.forEach( det => {
           if (
             (det.cantAPedir > 0) ||
@@ -721,6 +726,7 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
             regTable['promedio'] = '';
             regTable['lote'] = '';
             regTable['operario'] = '';
+            regTable['observaciones'] = det.observaciones;
 
             detDataTable.push(regTable);
           }
