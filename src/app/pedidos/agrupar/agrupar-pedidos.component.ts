@@ -10,7 +10,7 @@ import { NgxStepperComponent, StepperOptions } from 'ngx-stepper';
 import { LocalDataSource } from 'ng2-smart-table';
 
 import { DataService } from '../../services/data.service';
-import { StockService } from '../../services/stock.service';
+import { ProductosService } from '../../services/productos.service';
 import { Subscription } from 'rxjs/Subscription';
 
 type AOA = any[][];
@@ -113,7 +113,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
   constructor(private _iconRegistry: MatIconRegistry,
               private _sanitizer: DomSanitizer,
               private dataService: DataService,
-              private stockService: StockService) {
+              private productosService: ProductosService) {
   }
 
   public ngOnInit(): void {
@@ -129,7 +129,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
         this.usuario.cantFilesLoad = usuario.cantFilesLoad;
         this.usuario.deposito = usuario.deposito;
 
-        this.stockService
+        this.productosService
           .getStock(this.usuario.depositoId)
           .then((stock: any[]) => {
             this.stock = stock;
@@ -148,8 +148,6 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
 
       console.log('Proveedores Cargados: ', (this.proveedores !== null && this.proveedores !== undefined));
     }));
-
-
   }
 
   public ngOnDestroy() {
@@ -243,6 +241,8 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
     const coColCantAPedir = 5;
     const coColUnidadMedida = 6;
     const coColKgUnitario = 7;
+
+    console.log(this.stock);
 
     for (let i = 0; i < detalle.length; i++) {
       const det = new Array();

@@ -7,12 +7,14 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { LoginComponent } from './login/login.component';
 import { MyGuardService } from './services/my-guard.service';
 import { BlankComponent } from './componentes/blank/blank.component';
+import {ListaPreciosComponent} from './precios/lista-precios.component';
 
 const APP_ROUTES: Routes = [
   { path: '', component: DashboardComponent, pathMatch: 'full' },
   { path: 'agrupar-pedidos', component: AgruparPedidosComponent, canActivate: [MyGuardService] },
   { path: 'agrupar-pedidos-local', component: AgruparPedidosLocalComponent, canActivate: [MyGuardService] },
   { path: 'control-liquidaciones', component: ControlLiquidacionesComponent, canActivate: [MyGuardService] },
+  { path: 'lista-precios', component: ListaPreciosComponent },
   { path: 'blank', component: BlankComponent },
   { path: 'login', component: LoginComponent }
 ];

@@ -11,6 +11,7 @@ import { AgruparPedidosLocalComponent } from './pedidos/agrupar/agrupar-pedidos-
 import { ControlLiquidacionesComponent } from './sueldos/control/control-liquidaciones.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { BlankComponent } from './componentes/blank/blank.component';
+import { ListaPreciosComponent } from './precios/lista-precios.component';
 
 import { InputFileModule } from 'ngx-input-file';
 import { NgxStepperModule } from 'ngx-stepper';
@@ -23,7 +24,7 @@ import { Routing } from './app.routing';
 import { AutorizacionService } from './services/autorizacion.service';
 import { MyGuardService } from './services/my-guard.service';
 import { DataService } from './services/data.service';
-import { StockService } from './services/stock.service';
+import { ProductosService } from './services/productos.service';
 import { SueldosService } from './services/sueldos.service';
 
 @NgModule({
@@ -34,7 +35,8 @@ import { SueldosService } from './services/sueldos.service';
     AgruparPedidosComponent,
     AgruparPedidosLocalComponent,
     ControlLiquidacionesComponent,
-    BlankComponent
+    BlankComponent,
+    ListaPreciosComponent
   ],
   imports: [
     FormsModule,
@@ -52,7 +54,7 @@ import { SueldosService } from './services/sueldos.service';
     AutorizacionService,
     MyGuardService,
     DataService,
-    StockService,
+    ProductosService,
     SueldosService
   ],
   bootstrap: [AppComponent]
