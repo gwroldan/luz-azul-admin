@@ -6,8 +6,6 @@ import { LocalDataSource } from 'ng2-smart-table';
 
 import { ProductosService } from '../services/productos.service';
 
-type AOA = any[][];
-
 @Component({
   selector: 'app-lista-precios',
   templateUrl: './lista-precios.component.html',
@@ -55,24 +53,4 @@ export class ListaPreciosComponent implements OnInit, OnDestroy {
   public ngOnDestroy() {
 
   }
-
-  // metodos DataTable
-  private setSourceDataTable(detalle: AOA) {
-    const keys = Object.keys(this.columns);
-    const detDataTable: any[] = [];
-
-    for (let i = 0; i < detalle.length; i++) {
-      const row = detalle[i];
-      const regTable: any = {};
-
-      for (let j = 0; j < row.length; j++) {
-        regTable[keys[j]] = row[j];
-      }
-
-      detDataTable.push(regTable);
-    }
-
-    this.sourceDataTable = new LocalDataSource(detDataTable);
-  }
-
 }
