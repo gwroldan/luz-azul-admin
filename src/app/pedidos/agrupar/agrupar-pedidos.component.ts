@@ -65,7 +65,7 @@ export class AgruparPedidosComponent implements OnInit, OnDestroy {
 
   // Properties InputFile Pedidos
   public inputFileModel: Array<any> = new Array<any>();
-  public inputMaxFiles: number = 40;
+  public inputMaxFiles: number = 100;
   public inputAccept: string = '.xls,.xlsx';
   private internalFileModel: Array<any> = new Array<any>(); // I need for disconetion of model when remove all files
   private internalFileErrors: Array<any> = new Array<any>();
