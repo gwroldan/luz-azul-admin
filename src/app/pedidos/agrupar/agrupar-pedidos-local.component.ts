@@ -665,12 +665,12 @@ export class AgruparPedidosLocalComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.internalFileModel.length > 1) {
-      this.steppers.clearError();
-      this.confirmNextStep();
-    } else {
+    /*if (this.internalFileModel.length > 1) {*/
+    this.steppers.clearError();
+    this.confirmNextStep();
+    /*} else {
       this.steppers.error('Debe seleccionar al menos 2 pedidos');
-    }
+    }*/
   }
 
   // metodos DataTable
